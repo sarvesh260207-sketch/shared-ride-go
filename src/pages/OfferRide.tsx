@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Bike, MapPin, Clock, Plus, Trash2, IndianRupee } from "lucide-react";
+import { ArrowLeft, Car, Bike, Clock, Plus, Trash2, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PRICE_PER_KM } from "@/types/ride";
-import { popularLocations } from "@/data/mockRides";
+import PlacesAutocomplete from "@/components/PlacesAutocomplete";
 import { motion } from "framer-motion";
 
 const OfferRide = () => {
@@ -59,23 +59,28 @@ const OfferRide = () => {
             </div>
           </div>
 
-          {/* From & To */}
+          {/* From & To with Google Places */}
           <div className="space-y-3 mb-6">
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Pickup</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Starting location" className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
-              </div>
+              <PlacesAutocomplete
+                value={from}
+                onChange={(val) => setFrom(val)}
+                placeholder="Starting location in Tamil Nadu"
+                iconColor="text-primary"
+              />
             </div>
 
             {/* Stops */}
             {stops.map((stop, i) => (
               <div key={i} className="flex gap-2">
-                <div className="relative flex-1">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input value={stop} onChange={(e) => updateStop(i, e.target.value)} placeholder={`Stop ${i + 1}`} className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
-                </div>
+                <PlacesAutocomplete
+                  value={stop}
+                  onChange={(val) => updateStop(i, val)}
+                  placeholder={`Stop ${i + 1} in Tamil Nadu`}
+                  iconColor="text-muted-foreground"
+                  className="flex-1"
+                />
                 <button onClick={() => removeStop(i)} className="p-3 rounded-xl border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -88,10 +93,12 @@ const OfferRide = () => {
 
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Drop-off</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
-                <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="Final destination" className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
-              </div>
+              <PlacesAutocomplete
+                value={to}
+                onChange={(val) => setTo(val)}
+                placeholder="Final destination in Tamil Nadu"
+                iconColor="text-accent"
+              />
             </div>
           </div>
 

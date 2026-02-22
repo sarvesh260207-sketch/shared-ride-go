@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
 import { Checkpoint } from "@/types/ride";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 interface MapViewProps {
   checkpoints: Checkpoint[];
@@ -10,70 +9,95 @@ interface MapViewProps {
 
 const MapView = ({ checkpoints, className = "" }: MapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
+  const mapInstance = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!mapRef.current || checkpoints.length === 0) return;
+    loadGoogleMaps().then(() => setLoaded(true)).catch(console.error);
+  }, []);
 
-    if (mapInstance.current) {
-      mapInstance.current.remove();
+  useEffect(() => {
+    if (!loaded || !mapRef.current || checkpoints.length === 0) return;
+
+    // Clear previous markers and polyline
+    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current = [];
+    polylineRef.current?.setMap(null);
+
+    const center = checkpoints[0];
+
+    if (!mapInstance.current) {
+      mapInstance.current = new google.maps.Map(mapRef.current, {
+        center: { lat: center.lat, lng: center.lng },
+        zoom: 12,
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: [
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
+        ],
+      });
     }
 
-    const map = L.map(mapRef.current, {
-      zoomControl: false,
-      attributionControl: false,
-    });
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© OpenStreetMap',
-    }).addTo(map);
-
-    const bounds = L.latLngBounds([]);
+    const bounds = new google.maps.LatLngBounds();
 
     checkpoints.forEach((cp, i) => {
       const isFirst = i === 0;
       const isLast = i === checkpoints.length - 1;
 
-      const color = isFirst ? "#0f9d6e" : isLast ? "#e8982a" : "#94a3b8";
-      const radius = isFirst || isLast ? 10 : 6;
+      const marker = new google.maps.Marker({
+        position: { lat: cp.lat, lng: cp.lng },
+        map: mapInstance.current!,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: isFirst ? "#0f9d6e" : isLast ? "#e8982a" : "#94a3b8",
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 2,
+          scale: isFirst || isLast ? 10 : 6,
+        },
+        title: cp.name,
+      });
 
-      L.circleMarker([cp.lat, cp.lng], {
-        radius,
-        fillColor: color,
-        color: "white",
-        weight: 2,
-        fillOpacity: 1,
-      })
-        .bindPopup(
-          `<div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px;">
-            <strong>${cp.name}</strong><br/>
-            <span style="color: #64748b;">${cp.arrivalTime}</span>
-          </div>`
-        )
-        .addTo(map);
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; padding: 2px;">
+          <strong>${cp.name}</strong><br/>
+          <span style="color: #64748b;">${cp.arrivalTime}</span>
+        </div>`,
+      });
 
-      bounds.extend([cp.lat, cp.lng]);
+      marker.addListener("click", () => {
+        infoWindow.open(mapInstance.current!, marker);
+      });
+
+      markersRef.current.push(marker);
+      bounds.extend({ lat: cp.lat, lng: cp.lng });
     });
 
-    // Draw route line
-    const latlngs = checkpoints.map((cp) => [cp.lat, cp.lng] as [number, number]);
-    L.polyline(latlngs, {
-      color: "#0f9d6e",
-      weight: 3,
-      opacity: 0.7,
-      dashArray: "8 6",
-    }).addTo(map);
+    // Draw route polyline
+    const path = checkpoints.map((cp) => ({ lat: cp.lat, lng: cp.lng }));
+    const polyline = new google.maps.Polyline({
+      path,
+      geodesic: true,
+      strokeColor: "#0f9d6e",
+      strokeOpacity: 0.8,
+      strokeWeight: 3,
+    });
+    polyline.setMap(mapInstance.current);
+    polylineRef.current = polyline;
 
-    map.fitBounds(bounds, { padding: [30, 30] });
-    mapInstance.current = map;
+    mapInstance.current.fitBounds(bounds, 40);
+  }, [loaded, checkpoints]);
 
-    return () => {
-      map.remove();
-      mapInstance.current = null;
-    };
-  }, [checkpoints]);
-
-  return <div ref={mapRef} className={`w-full rounded-xl overflow-hidden ${className}`} style={{ minHeight: 250 }} />;
+  return (
+    <div
+      ref={mapRef}
+      className={`w-full rounded-xl overflow-hidden ${className}`}
+      style={{ minHeight: 250 }}
+    />
+  );
 };
 
 export default MapView;
