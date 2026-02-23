@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Car, User, PlusCircle } from "lucide-react";
+import { Car, User, PlusCircle, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -16,6 +16,12 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Link to="/travel-planner">
+            <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
+              <Route className="w-3.5 h-3.5" />
+              Plan Trip
+            </Button>
+          </Link>
           <Link to="/offer-ride">
             <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
               <PlusCircle className="w-3.5 h-3.5" />
