@@ -108,7 +108,7 @@ const RideDetail = () => {
           {/* Right - Map */}
           <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} className="lg:w-[400px]">
             <div className="sticky top-20">
-              <MapView checkpoints={ride.checkpoints} className="h-[450px]" />
+              <MapView checkpoints={ride.checkpoints} className="h-[450px]" simulateDriver />
               <Button className="w-full mt-4 saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base gap-2">
                 <Users className="w-5 h-5" /> Request to Join
               </Button>
