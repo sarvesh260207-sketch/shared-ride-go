@@ -2,16 +2,28 @@ import { useState } from "react";
 import {
   Bus, Train, Car, Bike, Footprints, MapPin, Clock, IndianRupee,
   ArrowRight, ChevronDown, Navigation, CheckCircle2, XCircle, AlertTriangle,
-  Calendar, Users, Zap,
+  Calendar, Users, Zap, ExternalLink, Star, Phone, Globe, Smartphone,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 
 /* ─── Static example data ─── */
+
+interface ServiceProvider {
+  name: string;
+  type: "app" | "website" | "phone" | "counter";
+  rating: number;
+  priceRange: string;
+  link?: string;
+  phone?: string;
+  logo?: string;
+  highlight?: string;
+}
 
 interface ExampleStep {
   mode: "walk" | "bus" | "train" | "auto" | "bike";
@@ -29,6 +41,7 @@ interface ExampleStep {
   vehicleNumber?: string;
   platform?: string;
   stops?: number;
+  providers?: ServiceProvider[];
 }
 
 interface ExampleRoute {
@@ -64,6 +77,9 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         duration: "15 min", distance: "1.1 km", cost: null,
         details: "Walk east on College Rd → turn right at Main Rd → Bus Stand on left",
         frequency: "—", availability: "available",
+        providers: [
+          { name: "Google Maps", type: "app", rating: 4.5, priceRange: "Free", link: "https://maps.google.com", highlight: "Walking directions" },
+        ],
       },
       {
         mode: "bus", label: "SETC Bus #803 → Pondicherry", from: "Tambaram Bus Stand",
@@ -72,6 +88,12 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         details: "Semi-Deluxe A/C bus via ECR. Stops at Chengalpattu, Tindivanam, Villupuram.",
         frequency: "Every 30 min (6 AM – 10 PM)", availability: "available",
         vehicleNumber: "TN 01 AN 0803", stops: 4,
+        providers: [
+          { name: "SETC (Govt)", type: "counter", rating: 4.0, priceRange: "₹150–₹250", link: "https://www.tnstc.in", highlight: "Official govt bus" },
+          { name: "TNSTC", type: "counter", rating: 3.8, priceRange: "₹120–₹200", link: "https://www.tnstc.in", highlight: "Budget option" },
+          { name: "redBus", type: "app", rating: 4.3, priceRange: "₹180–₹350", link: "https://www.redbus.in", highlight: "Online booking" },
+          { name: "Parveen Travels", type: "app", rating: 4.1, priceRange: "₹250–₹450", link: "https://www.parveentravels.com", highlight: "Private A/C Volvo" },
+        ],
       },
       {
         mode: "auto", label: "Auto to Pondicherry Beach", from: "Pondicherry Bus Stand",
@@ -79,6 +101,12 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         duration: "15 min", distance: "3.2 km", cost: 50,
         details: "Auto-rickshaw from bus stand. Negotiate fare or use Rapido/Ola auto.",
         frequency: "Always available", availability: "available",
+        providers: [
+          { name: "Rapido", type: "app", rating: 4.2, priceRange: "₹30–₹60", link: "https://www.rapido.bike", highlight: "Cheapest auto" },
+          { name: "Ola Auto", type: "app", rating: 4.0, priceRange: "₹40–₹70", link: "https://www.olacabs.com", highlight: "Reliable" },
+          { name: "Uber Auto", type: "app", rating: 4.1, priceRange: "₹35–₹65", link: "https://www.uber.com", highlight: "Upfront pricing" },
+          { name: "Local Auto Stand", type: "counter", rating: 3.5, priceRange: "₹50–₹80", phone: "Negotiate at stand", highlight: "No app needed" },
+        ],
       },
     ],
     pros: ["Most affordable option", "Frequent departures", "Direct route"],
@@ -109,6 +137,12 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         details: "Train #16053 Tambaram–Villupuram Express. Unreserved 2nd class.",
         frequency: "5 trains between 6–10 AM", availability: "available",
         vehicleNumber: "16053", platform: "Platform 3", stops: 8,
+        providers: [
+          { name: "IRCTC", type: "app", rating: 3.9, priceRange: "₹55–₹350", link: "https://www.irctc.co.in", highlight: "Official booking" },
+          { name: "ConfirmTkt", type: "app", rating: 4.2, priceRange: "₹55–₹350", link: "https://www.confirmtkt.com", highlight: "Prediction & alerts" },
+          { name: "Trainman", type: "app", rating: 4.1, priceRange: "₹55–₹350", link: "https://www.trainman.in", highlight: "PNR & availability" },
+          { name: "Station Counter", type: "counter", rating: 3.5, priceRange: "₹55", phone: "Unreserved ticket", highlight: "Walk-in purchase" },
+        ],
       },
       {
         mode: "train", label: "Passenger Train to Pondicherry", from: "Villupuram Junction",
@@ -117,6 +151,10 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         details: "Train #56501 Villupuram–Pondicherry Passenger. Runs daily.",
         frequency: "3 trains between 9–11 AM", availability: "limited",
         vehicleNumber: "56501", platform: "Platform 1", stops: 5,
+        providers: [
+          { name: "IRCTC", type: "app", rating: 3.9, priceRange: "₹15", link: "https://www.irctc.co.in", highlight: "Official booking" },
+          { name: "Station Counter", type: "counter", rating: 3.5, priceRange: "₹15", phone: "Unreserved ticket", highlight: "Walk-in only" },
+        ],
       },
       {
         mode: "auto", label: "Auto to Beach", from: "Pondicherry Railway Station",
@@ -124,6 +162,11 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         duration: "10 min", distance: "2.5 km", cost: 40,
         details: "Short auto ride from station to beach promenade.",
         frequency: "Always available", availability: "available",
+        providers: [
+          { name: "Rapido", type: "app", rating: 4.2, priceRange: "₹25–₹50", link: "https://www.rapido.bike", highlight: "Cheapest option" },
+          { name: "Ola Auto", type: "app", rating: 4.0, priceRange: "₹35–₹55", link: "https://www.olacabs.com", highlight: "Reliable" },
+          { name: "Local Auto", type: "counter", rating: 3.5, priceRange: "₹40–₹60", phone: "Negotiate", highlight: "Available at station" },
+        ],
       },
     ],
     pros: ["Cheapest overall", "Scenic route", "No traffic delays"],
@@ -151,9 +194,15 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         mode: "auto", label: "Cab via ECR / GST Road", from: "MCC College, Tambaram",
         to: "Pondicherry Beach (Promenade)", departure: "On demand", arrival: "~2h 40m",
         duration: "2h 40m", distance: "158 km", cost: 2850,
-        details: "Route: Tambaram → Chengalpattu → Tindivanam → Pondicherry via NH32/ECR. Ola Prime Sedan / Uber Go. Toll: ~₹150 extra.",
+        details: "Route: Tambaram → Chengalpattu → Tindivanam → Pondicherry via NH32/ECR. Toll: ~₹150 extra.",
         frequency: "24/7 on-demand", availability: "available",
         vehicleNumber: "Ola / Uber / InDrive",
+        providers: [
+          { name: "Ola", type: "app", rating: 4.1, priceRange: "₹2,500–₹3,200", link: "https://www.olacabs.com", highlight: "Prime Sedan" },
+          { name: "Uber", type: "app", rating: 4.2, priceRange: "₹2,400–₹3,000", link: "https://www.uber.com", highlight: "Uber Go / Premier" },
+          { name: "InDrive", type: "app", rating: 4.0, priceRange: "₹2,000–₹2,800", link: "https://indrive.com", highlight: "Negotiate fare" },
+          { name: "Rapido Cab", type: "app", rating: 3.9, priceRange: "₹2,200–₹2,900", link: "https://www.rapido.bike", highlight: "Budget cabs" },
+        ],
       },
     ],
     pros: ["Fastest & most comfortable", "Door-to-door", "Available 24/7"],
@@ -177,13 +226,22 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         details: "MRTS / EMU suburban train. Very frequent service.",
         frequency: "Every 10–15 min", availability: "available",
         platform: "Platform 1", stops: 6,
+        providers: [
+          { name: "IRCTC", type: "app", rating: 3.9, priceRange: "₹10", link: "https://www.irctc.co.in", highlight: "Official" },
+          { name: "Station Counter", type: "counter", rating: 3.5, priceRange: "₹10", highlight: "Walk-in" },
+        ],
       },
       {
-        mode: "walk", label: "Walk to CMBT / Koyambedu", from: "Chennai Egmore",
+        mode: "walk", label: "Walk/Auto to CMBT Koyambedu", from: "Chennai Egmore",
         to: "CMBT Koyambedu", departure: "06:55 AM", arrival: "07:15 AM",
         duration: "20 min", distance: "Auto ₹30", cost: 30,
         details: "Take a share auto from Egmore to CMBT (₹30) or Metro Rail to Koyambedu.",
         frequency: "—", availability: "available",
+        providers: [
+          { name: "Chennai Metro", type: "app", rating: 4.3, priceRange: "₹20–₹40", link: "https://chennaimetrorail.org", highlight: "Metro Rail option" },
+          { name: "Rapido", type: "app", rating: 4.2, priceRange: "₹25–₹45", link: "https://www.rapido.bike", highlight: "Bike taxi" },
+          { name: "Share Auto", type: "counter", rating: 3.5, priceRange: "₹20–₹30", highlight: "Budget commute" },
+        ],
       },
       {
         mode: "bus", label: "SETC Volvo to Pondicherry", from: "CMBT Koyambedu",
@@ -192,6 +250,12 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         details: "SETC Ultra Deluxe / Volvo A/C bus. Comfortable seats, direct service.",
         frequency: "Every 20 min (6 AM – 11 PM)", availability: "available",
         vehicleNumber: "SETC Volvo UD", stops: 2,
+        providers: [
+          { name: "SETC (Govt)", type: "counter", rating: 4.0, priceRange: "₹100–₹200", link: "https://www.tnstc.in", highlight: "Official Volvo" },
+          { name: "redBus", type: "app", rating: 4.3, priceRange: "₹150–₹350", link: "https://www.redbus.in", highlight: "Online booking" },
+          { name: "AbhiBus", type: "app", rating: 4.1, priceRange: "₹140–₹300", link: "https://www.abhibus.com", highlight: "Instant confirm" },
+          { name: "KPN Travels", type: "app", rating: 4.2, priceRange: "₹300–₹500", link: "https://www.kpntravels.in", highlight: "Premium private" },
+        ],
       },
       {
         mode: "auto", label: "Auto to Beach", from: "Pondicherry Bus Stand",
@@ -199,6 +263,11 @@ const EXAMPLE_ROUTES: ExampleRoute[] = [
         duration: "10 min", distance: "3 km", cost: 40,
         details: "Auto or Rapido bike taxi to beach promenade.",
         frequency: "Always available", availability: "available",
+        providers: [
+          { name: "Rapido", type: "app", rating: 4.2, priceRange: "₹25–₹50", link: "https://www.rapido.bike", highlight: "Bike taxi" },
+          { name: "Ola Auto", type: "app", rating: 4.0, priceRange: "₹35–₹55", link: "https://www.olacabs.com", highlight: "Metered auto" },
+          { name: "Local Auto", type: "counter", rating: 3.5, priceRange: "₹40–₹60", phone: "Negotiate", highlight: "No app needed" },
+        ],
       },
     ],
     pros: ["Good balance of cost & comfort", "A/C Volvo bus option", "Reliable timings"],
@@ -420,6 +489,65 @@ const ExampleTripShowcase = () => {
                                   </Badge>
                                 )}
                               </div>
+
+                              {/* Service Providers */}
+                              {step.providers && step.providers.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+                                    <Smartphone className="w-3 h-3 text-primary" /> Book via Service Providers
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {step.providers.map((prov, pi) => (
+                                      <div
+                                        key={pi}
+                                        className="flex items-center gap-2 p-2 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors group"
+                                      >
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="font-medium text-xs text-foreground">{prov.name}</span>
+                                            {prov.highlight && (
+                                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/20 text-primary bg-primary/5">
+                                                {prov.highlight}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                              <Star className="w-2.5 h-2.5 text-accent fill-accent" />{prov.rating}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                              <IndianRupee className="w-2.5 h-2.5" />{prov.priceRange}
+                                            </span>
+                                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 capitalize">
+                                              {prov.type === "app" && <Smartphone className="w-2.5 h-2.5 mr-0.5" />}
+                                              {prov.type === "website" && <Globe className="w-2.5 h-2.5 mr-0.5" />}
+                                              {prov.type === "phone" && <Phone className="w-2.5 h-2.5 mr-0.5" />}
+                                              {prov.type === "counter" && <MapPin className="w-2.5 h-2.5 mr-0.5" />}
+                                              {prov.type}
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                        {prov.link ? (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 text-xs px-2 gap-1 shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                                            asChild
+                                          >
+                                            <a href={prov.link} target="_blank" rel="noopener noreferrer">
+                                              Book <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                          </Button>
+                                        ) : prov.phone ? (
+                                          <Badge variant="outline" className="text-[10px] shrink-0">
+                                            <Phone className="w-2.5 h-2.5 mr-0.5" />{prov.phone}
+                                          </Badge>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </Card>
                           </div>
                         </div>
