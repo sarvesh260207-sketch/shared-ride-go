@@ -4,6 +4,7 @@ import {
   Bus, Train, Footprints, Car, Bike, MapPin, Clock, IndianRupee,
   ArrowRight, ChevronDown, Navigation, AlertCircle, Route,
 } from "lucide-react";
+import ExampleTripShowcase from "@/components/ExampleTripShowcase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
@@ -357,26 +358,29 @@ const TravelPlanner = () => {
         </section>
       )}
 
-      {/* Empty state hints */}
+      {/* Example trip showcase + How it works */}
       {!searched && (
-        <section className="container mx-auto px-4 py-12">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-display font-bold text-lg text-foreground mb-4">How It Works</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { icon: MapPin, title: "Pick Locations", desc: "Enter your starting point and final destination" },
-                { icon: Bus, title: "Get Transit Routes", desc: "See exact bus & train options with timings" },
-                { icon: Navigation, title: "Last Mile Info", desc: "Auto, bike taxi, or walk options to your door" },
-              ].map((item) => (
-                <Card key={item.title} className="p-4 border-border bg-card text-center">
-                  <item.icon className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="font-display font-semibold text-sm text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                </Card>
-              ))}
+        <>
+          <ExampleTripShowcase />
+          <section className="container mx-auto px-4 py-12">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="font-display font-bold text-lg text-foreground mb-4">How It Works</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { icon: MapPin, title: "Pick Locations", desc: "Enter your starting point and final destination" },
+                  { icon: Bus, title: "Get Transit Routes", desc: "See exact bus & train options with timings" },
+                  { icon: Navigation, title: "Last Mile Info", desc: "Auto, bike taxi, or walk options to your door" },
+                ].map((item) => (
+                  <Card key={item.title} className="p-4 border-border bg-card text-center">
+                    <item.icon className="w-8 h-8 text-primary mx-auto mb-2" />
+                    <p className="font-display font-semibold text-sm text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </>
       )}
     </div>
   );
