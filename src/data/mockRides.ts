@@ -17,6 +17,7 @@ export const mockRides: Ride[] = [
     arrivalTime: "09:30 AM",
     from: "T. Nagar, Chennai",
     to: "Tambaram, Chennai",
+    rideMood: ["social", "networking"],
     checkpoints: [
       { id: "c1", name: "T. Nagar Bus Stand", lat: 13.0418, lng: 80.2341, arrivalTime: "08:30 AM" },
       { id: "c2", name: "Saidapet", lat: 13.0225, lng: 80.2231, arrivalTime: "08:42 AM" },
@@ -42,6 +43,7 @@ export const mockRides: Ride[] = [
     from: "Anna Nagar, Chennai",
     to: "OMR Thoraipakkam",
     femaleOnly: true,
+    rideMood: ["silent"],
     checkpoints: [
       { id: "c6", name: "Anna Nagar Tower", lat: 13.0850, lng: 80.2101, arrivalTime: "09:00 AM" },
       { id: "c7", name: "Koyambedu", lat: 13.0694, lng: 80.1948, arrivalTime: "09:12 AM" },
@@ -70,6 +72,7 @@ export const mockRides: Ride[] = [
     arrivalTime: "08:50 AM",
     from: "Adyar, Chennai",
     to: "Tidel Park, Chennai",
+    rideMood: ["networking"],
     checkpoints: [
       { id: "c11", name: "Adyar Signal", lat: 13.0063, lng: 80.2574, arrivalTime: "08:15 AM" },
       { id: "c12", name: "Thiruvanmiyur", lat: 12.9830, lng: 80.2594, arrivalTime: "08:28 AM" },
@@ -94,6 +97,7 @@ export const mockRides: Ride[] = [
     from: "Tambaram, Chennai",
     to: "Velachery, Chennai",
     femaleOnly: true,
+    rideMood: ["social", "silent"],
     checkpoints: [
       { id: "c15", name: "Tambaram Railway Station", lat: 12.9249, lng: 80.1000, arrivalTime: "07:45 AM" },
       { id: "c16", name: "Chromepet", lat: 12.9516, lng: 80.1462, arrivalTime: "08:00 AM" },
@@ -123,6 +127,7 @@ export const mockRides: Ride[] = [
     arrivalTime: "09:45 AM",
     from: "Madurai Meenakshi Temple",
     to: "Madurai Mattuthavani",
+    rideMood: ["social", "networking", "silent"],
     checkpoints: [
       { id: "c20", name: "Meenakshi Amman Temple", lat: 9.9195, lng: 78.1193, arrivalTime: "09:15 AM" },
       { id: "c21", name: "Periyar Bus Stand", lat: 9.9230, lng: 78.1228, arrivalTime: "09:25 AM" },

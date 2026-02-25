@@ -1,4 +1,5 @@
-import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle } from "lucide-react";
+import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX } from "lucide-react";
+import { RideMood } from "@/types/ride";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
 import MapView from "@/components/MapView";
@@ -48,6 +49,27 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
           </div>
         </div>
       </div>
+
+      {/* Ride mood tags */}
+      {ride.rideMood && ride.rideMood.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {ride.rideMood.includes('social') && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+              <MessageCircle className="w-2.5 h-2.5" /> Social Ride
+            </span>
+          )}
+          {ride.rideMood.includes('networking') && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground border border-accent/20">
+              <Handshake className="w-2.5 h-2.5" /> Networking
+            </span>
+          )}
+          {ride.rideMood.includes('silent') && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+              <VolumeX className="w-2.5 h-2.5" /> Silent Mode
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Route with checkpoints */}
       <div className="flex items-center gap-2 mb-3">
