@@ -15,6 +15,7 @@ const Index = () => {
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [routeCheckpoints, setRouteCheckpoints] = useState<Checkpoint[]>([]);
+  const [femaleOnly, setFemaleOnly] = useState(false);
 
   const handleSearch = async (
     from: string,
@@ -22,8 +23,7 @@ const Index = () => {
     fromPlace?: google.maps.places.PlaceResult,
     toPlace?: google.maps.places.PlaceResult
   ) => {
-    // Filter mock rides
-    const results = mockRides.filter(
+    let results = mockRides.filter(
       (r) =>
         r.from.toLowerCase().includes(from.toLowerCase()) ||
         r.to.toLowerCase().includes(to.toLowerCase()) ||
@@ -32,11 +32,14 @@ const Index = () => {
           cp.name.toLowerCase().includes(to.toLowerCase())
         )
     );
-    setSearchResults(results.length > 0 ? results : mockRides);
+
+    if (results.length === 0) results = mockRides;
+    if (femaleOnly) results = results.filter((r) => r.femaleOnly);
+
+    setSearchResults(results);
     setSelectedRide(null);
     setHasSearched(true);
 
-    // Generate route checkpoints from Google Directions if places selected
     if (fromPlace?.geometry?.location && toPlace?.geometry?.location) {
       try {
         const origin = {
@@ -75,10 +78,14 @@ const Index = () => {
     selectedRide?.checkpoints || routeCheckpoints.length > 0 ? routeCheckpoints : searchResults[0]?.checkpoints || [];
 
   const features = [
-    { icon: IndianRupee, title: "₹5/km Car • ₹3/km Bike", desc: "Share costs, not compromise" },
+    { icon: IndianRupee, title: "₹12/km Car • ₹7/km Bike", desc: "Share costs, not compromise" },
     { icon: Shield, title: "Verified Commuters", desc: "Corporate verified riders" },
     { icon: Leaf, title: "Eco Friendly", desc: "Reduce carbon footprint" },
   ];
+
+  // Get featured rides for empty state — show one with map
+  const featuredRides = mockRides.filter(r => r.bookedPassengers && r.bookedPassengers.length > 0);
+  const regularRides = mockRides.filter(r => !r.bookedPassengers || r.bookedPassengers.length === 0).slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +104,7 @@ const Index = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="max-w-3xl mx-auto">
-            <SearchPanel onSearch={handleSearch} />
+            <SearchPanel onSearch={handleSearch} femaleOnly={femaleOnly} onFemaleOnlyChange={setFemaleOnly} />
           </motion.div>
 
           {/* Feature chips */}
@@ -130,7 +137,7 @@ const Index = () => {
               </div>
               <div className="space-y-3">
                 {searchResults.map((ride, i) => (
-                  <RideCard key={ride.id} ride={ride} index={i} onClick={handleRideClick} />
+                  <RideCard key={ride.id} ride={ride} index={i} onClick={handleRideClick} showDetailedMap={!!ride.bookedPassengers?.length} />
                 ))}
               </div>
             </div>
@@ -156,12 +163,27 @@ const Index = () => {
         </section>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — Popular routes with featured partially booked rides */}
       {!hasSearched && (
         <section className="container mx-auto px-4 py-12">
           <h2 className="font-display font-bold text-xl text-foreground text-center mb-6">Popular Routes in Tamil Nadu</h2>
+
+          {/* Featured partially booked rides with maps */}
+          {featuredRides.length > 0 && (
+            <div className="mb-8">
+              <h3 className="font-display font-semibold text-sm text-muted-foreground text-center mb-4">
+                🔥 Partially Booked — Join Now!
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                {featuredRides.map((ride, i) => (
+                  <RideCard key={ride.id} ride={ride} index={i} onClick={handleRideClick} showDetailedMap />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl mx-auto">
-            {mockRides.slice(0, 3).map((ride, i) => (
+            {regularRides.map((ride, i) => (
               <RideCard key={ride.id} ride={ride} index={i} onClick={handleRideClick} />
             ))}
           </div>
