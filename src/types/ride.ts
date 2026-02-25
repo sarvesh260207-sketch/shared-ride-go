@@ -24,8 +24,11 @@ export interface Ride {
   from: string;
   to: string;
   femaleOnly?: boolean;
+  rideMood?: RideMood[];
   bookedPassengers?: BookedPassenger[];
 }
+
+export type RideMood = 'social' | 'networking' | 'silent';
 
 export interface BookedPassenger {
   name: string;
