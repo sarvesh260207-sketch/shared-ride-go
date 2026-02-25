@@ -1,14 +1,19 @@
-import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee } from "lucide-react";
+import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle } from "lucide-react";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
+import MapView from "@/components/MapView";
 
 interface RideCardProps {
   ride: Ride;
   index: number;
   onClick: (ride: Ride) => void;
+  showDetailedMap?: boolean;
 }
 
-const RideCard = ({ ride, index, onClick }: RideCardProps) => {
+const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardProps) => {
+  const bookedCount = ride.bookedPassengers?.length || 0;
+  const isPartiallyBooked = bookedCount > 0 && ride.seatsAvailable > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -30,12 +35,21 @@ const RideCard = ({ ride, index, onClick }: RideCardProps) => {
             </div>
           </div>
         </div>
-        <div className={ride.vehicleType === 'car' ? 'saathi-chip-car' : 'saathi-chip-bike'}>
-          {ride.vehicleType === 'car' ? <Car className="w-3 h-3" /> : <Bike className="w-3 h-3" />}
-          {ride.vehicleName}
+        <div className="flex items-center gap-2">
+          {ride.femaleOnly && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 text-xs font-semibold border border-pink-500/20">
+              <ShieldCheck className="w-3 h-3" />
+              Female Only
+            </div>
+          )}
+          <div className={ride.vehicleType === 'car' ? 'saathi-chip-car' : 'saathi-chip-bike'}>
+            {ride.vehicleType === 'car' ? <Car className="w-3 h-3" /> : <Bike className="w-3 h-3" />}
+            {ride.vehicleName}
+          </div>
         </div>
       </div>
 
+      {/* Route with checkpoints */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex flex-col items-center">
           <div className="w-2.5 h-2.5 rounded-full bg-primary border-2 border-primary/30" />
@@ -53,6 +67,69 @@ const RideCard = ({ ride, index, onClick }: RideCardProps) => {
           </div>
         </div>
       </div>
+
+      {/* Booked passengers with pickup/drop checkpoints */}
+      {isPartiallyBooked && (
+        <div className="mb-3 p-3 rounded-lg bg-muted/50 border border-border">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Users className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-semibold text-foreground">
+              {bookedCount}/{ride.totalSeats} seats booked
+            </span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {ride.seatsAvailable} available
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {ride.bookedPassengers!.map((p, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[10px]">
+                  {p.avatar}
+                </div>
+                <span className="text-foreground font-medium">{p.name}</span>
+                <span className="text-muted-foreground">
+                  {p.pickupCheckpoint} → {p.dropCheckpoint}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Checkpoint pills */}
+      {ride.checkpoints.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {ride.checkpoints.map((cp, i) => {
+            const isPickup = ride.bookedPassengers?.some(p => p.pickupCheckpoint === cp.name);
+            const isDrop = ride.bookedPassengers?.some(p => p.dropCheckpoint === cp.name);
+            return (
+              <div
+                key={cp.id}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                  isPickup
+                    ? "bg-primary/10 text-primary border-primary/20"
+                    : isDrop
+                    ? "bg-accent/10 text-accent-foreground border-accent/20"
+                    : "bg-muted text-muted-foreground border-border"
+                }`}
+              >
+                <MapPin className="w-2.5 h-2.5" />
+                {cp.name}
+                <span className="text-muted-foreground">{cp.arrivalTime}</span>
+                {isPickup && <span className="text-primary font-bold ml-0.5">↑</span>}
+                {isDrop && <span className="text-accent font-bold ml-0.5">↓</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Inline map */}
+      {showDetailedMap && ride.checkpoints.length >= 2 && (
+        <div className="mb-3 rounded-lg overflow-hidden border border-border">
+          <MapView checkpoints={ride.checkpoints} className="h-[180px]" />
+        </div>
+      )}
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <div className="flex items-center gap-3">

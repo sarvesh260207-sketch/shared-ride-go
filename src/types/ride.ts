@@ -14,6 +14,7 @@ export interface Ride {
   vehicleType: 'car' | 'bike';
   vehicleName: string;
   seatsAvailable: number;
+  totalSeats: number;
   pricePerKm: number;
   totalDistance: number;
   totalPrice: number;
@@ -22,9 +23,18 @@ export interface Ride {
   checkpoints: Checkpoint[];
   from: string;
   to: string;
+  femaleOnly?: boolean;
+  bookedPassengers?: BookedPassenger[];
+}
+
+export interface BookedPassenger {
+  name: string;
+  avatar: string;
+  pickupCheckpoint: string;
+  dropCheckpoint: string;
 }
 
 export const PRICE_PER_KM = {
-  car: 5,
-  bike: 3,
+  car: 12,
+  bike: 7,
 } as const;
