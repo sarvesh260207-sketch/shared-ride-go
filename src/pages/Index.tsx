@@ -5,6 +5,7 @@ import { Car, Bike, IndianRupee, Shield, Leaf } from "lucide-react";
 import SearchPanel from "@/components/SearchPanel";
 import RideCard from "@/components/RideCard";
 import MapView from "@/components/MapView";
+import CollegeRideSelector from "@/components/CollegeRideSelector";
 import { mockRides } from "@/data/mockRides";
 import { Ride, Checkpoint } from "@/types/ride";
 import { getDirectionsRoute, generateCheckpointsFromRoute } from "@/lib/googleMaps";
@@ -95,8 +96,8 @@ const Index = () => {
         <div className="container mx-auto px-4 py-12 sm:py-20">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-2xl mx-auto mb-8">
             <h1 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-3 tracking-tight">
-              Your Daily Commute,{" "}
-              <span className="saathi-gradient-text">Shared.</span>
+              Travel Green,{" "}
+              <span className="zhoop-gradient-text">Earn Green.</span>
             </h1>
             <p className="text-muted-foreground text-lg">
               Connect with co-commuters heading your way in Tamil Nadu. Save money, make friends, go green.
@@ -162,6 +163,9 @@ const Index = () => {
           </div>
         </section>
       )}
+
+      {/* College Commute Section */}
+      <CollegeRideSelector />
 
       {/* Empty state — Popular routes with featured partially booked rides */}
       {!hasSearched && (

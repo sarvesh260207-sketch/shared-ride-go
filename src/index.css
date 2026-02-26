@@ -45,17 +45,18 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Custom Saathi tokens */
-    --saathi-emerald: 162 95% 46%;
-    --saathi-emerald-light: 162 80% 95%;
-    --saathi-navy: 220 30% 12%;
-    --saathi-amber: 38 90% 55%;
-    --saathi-amber-light: 38 90% 95%;
-    --saathi-sky: 200 80% 55%;
-    --saathi-gradient: linear-gradient(135deg, hsl(162 95% 46%), hsl(170 85% 50%));
-    --saathi-gradient-warm: linear-gradient(135deg, hsl(38 90% 55%), hsl(25 85% 55%));
-    --saathi-shadow: 0 4px 24px -4px hsl(162 95% 46% / 0.2);
-    --saathi-shadow-lg: 0 12px 40px -8px hsl(162 95% 46% / 0.25);
+    /* Custom Zhoop tokens */
+    --zhoop-mint: 162 95% 46%;
+    --zhoop-mint-light: 162 80% 95%;
+    --zhoop-navy: 220 30% 12%;
+    --zhoop-amber: 38 90% 55%;
+    --zhoop-amber-light: 38 90% 95%;
+    --zhoop-sky: 200 80% 55%;
+    --zhoop-gradient: linear-gradient(135deg, hsl(162 95% 46%), hsl(170 85% 50%));
+    --zhoop-gradient-warm: linear-gradient(135deg, hsl(38 90% 55%), hsl(25 85% 55%));
+    --zhoop-shadow: 0 4px 24px -4px hsl(162 95% 46% / 0.2);
+    --zhoop-shadow-lg: 0 12px 40px -8px hsl(162 95% 46% / 0.25);
+    --zhoop-college: 250 70% 55%;
   }
 
   .dark {
@@ -105,25 +106,25 @@
 }
 
 @layer components {
-  .saathi-gradient-bg {
-    background: var(--saathi-gradient);
+  .saathi-gradient-bg, .zhoop-gradient-bg {
+    background: var(--zhoop-gradient);
   }
-  .saathi-gradient-text {
-    background: var(--saathi-gradient);
+  .saathi-gradient-text, .zhoop-gradient-text {
+    background: var(--zhoop-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .saathi-card {
+  .saathi-card, .zhoop-card {
     @apply bg-card rounded-xl border shadow-sm hover:shadow-md transition-all duration-300;
   }
-  .saathi-chip {
+  .saathi-chip, .zhoop-chip {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium;
   }
-  .saathi-chip-car {
-    @apply saathi-chip bg-primary/10 text-primary;
+  .saathi-chip-car, .zhoop-chip-car {
+    @apply zhoop-chip bg-primary/10 text-primary;
   }
-  .saathi-chip-bike {
-    @apply saathi-chip bg-accent/15 text-accent-foreground;
+  .saathi-chip-bike, .zhoop-chip-bike {
+    @apply zhoop-chip bg-accent/15 text-accent-foreground;
   }
 }
