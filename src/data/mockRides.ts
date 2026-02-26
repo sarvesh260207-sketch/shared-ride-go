@@ -25,6 +25,10 @@ export const mockRides: Ride[] = [
       { id: "c4", name: "Chromepet", lat: 12.9516, lng: 80.1462, arrivalTime: "09:10 AM" },
       { id: "c5", name: "Tambaram Railway Station", lat: 12.9249, lng: 80.1000, arrivalTime: "09:30 AM" },
     ],
+    broCodeLinks: [
+      { userId: "u1", name: "Vijay S", avatar: "VS", college: "MCC" },
+      { userId: "u2", name: "Deepak R", avatar: "DR", college: "MCC" },
+    ],
   },
   {
     id: "2",
@@ -78,6 +82,9 @@ export const mockRides: Ride[] = [
       { id: "c12", name: "Thiruvanmiyur", lat: 12.9830, lng: 80.2594, arrivalTime: "08:28 AM" },
       { id: "c13", name: "Perungudi Toll", lat: 12.9611, lng: 80.2441, arrivalTime: "08:38 AM" },
       { id: "c14", name: "Tidel Park", lat: 12.9446, lng: 80.2379, arrivalTime: "08:50 AM" },
+    ],
+    broCodeLinks: [
+      { userId: "u3", name: "Arvind M", avatar: "AM" },
     ],
   },
   {

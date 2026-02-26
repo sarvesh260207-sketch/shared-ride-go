@@ -6,6 +6,13 @@ export interface Checkpoint {
   arrivalTime: string;
 }
 
+export interface BroCodeLink {
+  userId: string;
+  name: string;
+  avatar: string;
+  college?: string;
+}
+
 export interface Ride {
   id: string;
   driverName: string;
@@ -26,6 +33,7 @@ export interface Ride {
   femaleOnly?: boolean;
   rideMood?: RideMood[];
   bookedPassengers?: BookedPassenger[];
+  broCodeLinks?: BroCodeLink[];
 }
 
 export type RideMood = 'social' | 'networking' | 'silent';

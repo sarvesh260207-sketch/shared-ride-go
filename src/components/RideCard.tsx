@@ -1,5 +1,6 @@
-import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX } from "lucide-react";
-import { RideMood } from "@/types/ride";
+import { useState } from "react";
+import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX, Link2 } from "lucide-react";
+import { RideMood, BroCodeLink } from "@/types/ride";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
 import MapView from "@/components/MapView";
@@ -14,6 +15,14 @@ interface RideCardProps {
 const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardProps) => {
   const bookedCount = ride.bookedPassengers?.length || 0;
   const isPartiallyBooked = bookedCount > 0 && ride.seatsAvailable > 0;
+  const [selectedMoods, setSelectedMoods] = useState<RideMood[]>(ride.rideMood || []);
+
+  const toggleMood = (mood: RideMood, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedMoods(prev =>
+      prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood]
+    );
+  };
 
   return (
     <motion.div
@@ -50,24 +59,61 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
         </div>
       </div>
 
-      {/* Ride mood tags */}
-      {ride.rideMood && ride.rideMood.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {ride.rideMood.includes('social') && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-              <MessageCircle className="w-2.5 h-2.5" /> Social Ride
-            </span>
-          )}
-          {ride.rideMood.includes('networking') && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground border border-accent/20">
-              <Handshake className="w-2.5 h-2.5" /> Networking
-            </span>
-          )}
-          {ride.rideMood.includes('silent') && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
-              <VolumeX className="w-2.5 h-2.5" /> Silent Mode
-            </span>
-          )}
+      {/* Selectable ride mood tags */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        <button
+          onClick={(e) => toggleMood('social', e)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${
+            selectedMoods.includes('social')
+              ? 'bg-primary/15 text-primary border-primary/40 shadow-sm'
+              : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/20'
+          }`}
+        >
+          <MessageCircle className="w-3.5 h-3.5" /> Social Ride
+        </button>
+        <button
+          onClick={(e) => toggleMood('networking', e)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${
+            selectedMoods.includes('networking')
+              ? 'bg-accent/15 text-accent-foreground border-accent/40 shadow-sm'
+              : 'bg-muted/50 text-muted-foreground border-border hover:border-accent/20'
+          }`}
+        >
+          <Handshake className="w-3.5 h-3.5" /> Networking
+        </button>
+        <button
+          onClick={(e) => toggleMood('silent', e)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${
+            selectedMoods.includes('silent')
+              ? 'bg-secondary text-foreground border-foreground/20 shadow-sm'
+              : 'bg-muted/50 text-muted-foreground border-border hover:border-foreground/10'
+          }`}
+        >
+          <VolumeX className="w-3.5 h-3.5" /> Silent Mode
+        </button>
+      </div>
+
+      {/* Bro Code Links */}
+      {ride.broCodeLinks && ride.broCodeLinks.length > 0 && (
+        <div className="mb-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Link2 className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-bold text-primary">Bro Code 🤜🤛</span>
+          </div>
+          <div className="space-y-1.5">
+            {ride.broCodeLinks.map((bro, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
+                  {bro.avatar}
+                </div>
+                <span className="text-foreground font-medium">{bro.name}</span>
+                {bro.college && (
+                  <span className="text-muted-foreground">• {bro.college}</span>
+                )}
+                <span className="ml-auto text-primary text-[10px] font-bold">Connected</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
