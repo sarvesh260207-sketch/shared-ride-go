@@ -6,6 +6,7 @@ import SearchPanel from "@/components/SearchPanel";
 import RideCard from "@/components/RideCard";
 import MapView from "@/components/MapView";
 import CollegeRideSelector from "@/components/CollegeRideSelector";
+import BroCodeInvite from "@/components/BroCodeInvite";
 import { mockRides } from "@/data/mockRides";
 import { Ride, Checkpoint } from "@/types/ride";
 import { getDirectionsRoute, generateCheckpointsFromRoute } from "@/lib/googleMaps";
@@ -166,6 +167,9 @@ const Index = () => {
 
       {/* College Commute Section */}
       <CollegeRideSelector />
+
+      {/* Bro Code Section */}
+      <BroCodeInvite />
 
       {/* Empty state — Popular routes with featured partially booked rides */}
       {!hasSearched && (
