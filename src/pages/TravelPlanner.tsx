@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bus, Train, Footprints, Car, Bike, MapPin, Clock, IndianRupee,
-  ArrowRight, ChevronDown, Navigation, AlertCircle, Route,
+  ArrowRight, ChevronDown, Navigation, AlertCircle, Route, Users,
 } from "lucide-react";
 import ExampleTripShowcase from "@/components/ExampleTripShowcase";
 import { Button } from "@/components/ui/button";
@@ -346,6 +347,14 @@ const TravelPlanner = () => {
                               {opt.estimatedCost}
                               <span className="text-xs font-normal text-muted-foreground ml-1">(est.)</span>
                             </div>
+                          )}
+                          {(opt.mode === "auto" || opt.mode === "bike") && (
+                            <Link to="/" className="mt-3 block">
+                              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs font-display rounded-lg border-primary/30 text-primary hover:bg-primary/5">
+                                <Users className="w-3.5 h-3.5" />
+                                Search for Commutes
+                              </Button>
+                            </Link>
                           )}
                         </Card>
                       ))}
