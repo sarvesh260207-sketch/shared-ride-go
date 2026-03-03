@@ -1,10 +1,74 @@
-import { User, Star, Car, MapPin, Clock, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, Car, Shield, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Profile = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<any>(null);
+  const [editing, setEditing] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [college, setCollege] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    fetchProfile();
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) {
+      setProfile(data);
+      setDisplayName(data.display_name || "");
+      setCollege(data.college || "");
+      setLocation(data.location || "");
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: displayName, college, location })
+      .eq("user_id", user.id);
+    if (error) {
+      toast.error("Failed to update profile");
+    } else {
+      toast.success("Profile updated!");
+      setEditing(false);
+      fetchProfile();
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
+  }
+
+  const initials = (displayName || user?.email || "U").slice(0, 2).toUpperCase();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-xl">
@@ -14,27 +78,45 @@ const Profile = () => {
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Profile Card */}
-          <div className="saathi-card p-6 text-center">
-            <div className="w-20 h-20 rounded-full saathi-gradient-bg mx-auto flex items-center justify-center text-primary-foreground font-display font-bold text-2xl mb-3">
-              YU
+          <div className="zhoop-card p-6 text-center">
+            <div className="w-20 h-20 rounded-full zhoop-gradient-bg mx-auto flex items-center justify-center text-primary-foreground font-display font-bold text-2xl mb-3">
+              {initials}
             </div>
-            <h2 className="font-display font-bold text-xl text-foreground">Your Name</h2>
-            <p className="text-sm text-muted-foreground mb-3">Bangalore, Karnataka</p>
-            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-accent text-accent" /> 4.8</span>
-              <span className="flex items-center gap-1"><Car className="w-4 h-4" /> 24 rides</span>
-              <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-primary" /> Verified</span>
-            </div>
+            {editing ? (
+              <div className="space-y-3 text-left">
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Display name" className="rounded-xl" />
+                <Input value={college} onChange={(e) => setCollege(e.target.value)} placeholder="College" className="rounded-xl" />
+                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" className="rounded-xl" />
+                <div className="flex gap-2">
+                  <Button onClick={handleSave} className="flex-1 zhoop-gradient-bg text-primary-foreground rounded-xl">Save</Button>
+                  <Button variant="outline" onClick={() => setEditing(false)} className="rounded-xl">Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="font-display font-bold text-xl text-foreground">{profile?.display_name || "Set your name"}</h2>
+                <p className="text-sm text-muted-foreground mb-1">{profile?.college || "No college set"}</p>
+                <p className="text-sm text-muted-foreground mb-3">{profile?.location || "No location set"}</p>
+                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-accent text-accent" /> {profile?.rating || "4.5"}</span>
+                  <span className="flex items-center gap-1"><Car className="w-4 h-4" /> {profile?.total_rides || 0} rides</span>
+                  {profile?.verified && <span className="flex items-center gap-1"><Shield className="w-4 h-4 text-primary" /> Verified</span>}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="gap-1.5 rounded-xl">
+                  <Pencil className="w-3.5 h-3.5" /> Edit Profile
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "Saved", value: "₹2,400", icon: "💰" },
-              { label: "CO₂ Saved", value: "18 kg", icon: "🌱" },
-              { label: "Connections", value: "12", icon: "🤝" },
+              { label: "Saved", value: `₹${profile?.money_saved || 0}`, icon: "💰" },
+              { label: "CO₂ Saved", value: `${profile?.co2_saved || 0} kg`, icon: "🌱" },
+              { label: "Connections", value: `${profile?.connections || 0}`, icon: "🤝" },
             ].map((stat) => (
-              <div key={stat.label} className="saathi-card p-4 text-center">
+              <div key={stat.label} className="zhoop-card p-4 text-center">
                 <span className="text-2xl mb-1 block">{stat.icon}</span>
                 <p className="font-display font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -42,26 +124,9 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* Recent Rides */}
-          <div className="saathi-card p-5">
-            <h3 className="font-display font-semibold text-foreground mb-3">Recent Rides</h3>
-            <div className="space-y-3">
-              {[
-                { from: "Whitefield", to: "Electronic City", date: "Today, 8:30 AM", price: 60 },
-                { from: "HSR Layout", to: "Indiranagar", date: "Yesterday, 9:00 AM", price: 18 },
-              ].map((ride, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{ride.from} → {ride.to}</p>
-                    <p className="text-xs text-muted-foreground">{ride.date}</p>
-                  </div>
-                  <span className="font-display font-semibold text-primary text-sm">₹{ride.price}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <p className="text-xs text-center text-muted-foreground">{user?.email}</p>
 
-          <Button variant="outline" className="w-full rounded-xl">Sign Out</Button>
+          <Button variant="outline" onClick={handleSignOut} className="w-full rounded-xl">Sign Out</Button>
         </motion.div>
       </div>
     </div>

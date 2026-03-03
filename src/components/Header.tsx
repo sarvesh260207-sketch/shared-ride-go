@@ -1,9 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
-import { User, PlusCircle, Route } from "lucide-react";
+import { Link } from "react-router-dom";
+import { User, PlusCircle, Route, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const location = useLocation();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
@@ -25,11 +26,20 @@ const Header = () => {
               Offer Ride
             </Button>
           </Link>
-          <Link to="/profile">
-            <Button variant="ghost" size="icon" className="rounded-lg">
-              <User className="w-4 h-4" />
-            </Button>
-          </Link>
+          {user ? (
+            <Link to="/profile">
+              <Button variant="ghost" size="icon" className="rounded-lg">
+                <User className="w-4 h-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>
