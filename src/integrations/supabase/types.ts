@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          ride_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          ride_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          ride_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -68,6 +109,104 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          requester_id: string
+          ride_id: string
+          seats_requested: number
+          status: Database["public"]["Enums"]["ride_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id: string
+          ride_id: string
+          seats_requested?: number
+          status?: Database["public"]["Enums"]["ride_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id?: string
+          ride_id?: string
+          seats_requested?: number
+          status?: Database["public"]["Enums"]["ride_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_requests_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          created_at: string
+          departure_time: string
+          destination: string
+          destination_lat: number | null
+          destination_lng: number | null
+          id: string
+          notes: string | null
+          origin: string
+          origin_lat: number | null
+          origin_lng: number | null
+          price: number | null
+          seats_available: number
+          status: Database["public"]["Enums"]["ride_status"]
+          type: Database["public"]["Enums"]["ride_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          departure_time: string
+          destination: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          id?: string
+          notes?: string | null
+          origin: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          price?: number | null
+          seats_available?: number
+          status?: Database["public"]["Enums"]["ride_status"]
+          type?: Database["public"]["Enums"]["ride_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          departure_time?: string
+          destination?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          id?: string
+          notes?: string | null
+          origin?: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          price?: number | null
+          seats_available?: number
+          status?: Database["public"]["Enums"]["ride_status"]
+          type?: Database["public"]["Enums"]["ride_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -76,7 +215,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      ride_request_status: "pending" | "accepted" | "rejected" | "cancelled"
+      ride_status: "active" | "in_progress" | "completed" | "cancelled"
+      ride_type: "offer" | "request"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -203,6 +344,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      ride_request_status: ["pending", "accepted", "rejected", "cancelled"],
+      ride_status: ["active", "in_progress", "completed", "cancelled"],
+      ride_type: ["offer", "request"],
+    },
   },
 } as const
