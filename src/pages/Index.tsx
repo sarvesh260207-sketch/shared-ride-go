@@ -7,6 +7,9 @@ import RideCard from "@/components/RideCard";
 import MapView from "@/components/MapView";
 import CollegeRideSelector from "@/components/CollegeRideSelector";
 import BroCodeInvite from "@/components/BroCodeInvite";
+import ImpactDashboard from "@/components/ImpactDashboard";
+import CircleOfTrustFilter from "@/components/CircleOfTrustFilter";
+import CampusLeague from "@/components/CampusLeague";
 import { mockRides } from "@/data/mockRides";
 import { Ride, Checkpoint } from "@/types/ride";
 import { getDirectionsRoute, generateCheckpointsFromRoute } from "@/lib/googleMaps";
@@ -18,6 +21,11 @@ const Index = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [routeCheckpoints, setRouteCheckpoints] = useState<Checkpoint[]>([]);
   const [femaleOnly, setFemaleOnly] = useState(false);
+
+  // Circle of Trust filters
+  const [circleOnly, setCircleOnly] = useState(false);
+  const [collegeFilter, setCollegeFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
 
   const handleSearch = async (
     from: string,
@@ -37,6 +45,16 @@ const Index = () => {
 
     if (results.length === 0) results = mockRides;
     if (femaleOnly) results = results.filter((r) => r.femaleOnly);
+
+    // Apply Circle of Trust filters
+    if (circleOnly) {
+      if (collegeFilter !== "all") {
+        results = results.filter((r) => r.driverCollege === collegeFilter);
+      }
+      if (departmentFilter !== "all") {
+        results = results.filter((r) => r.driverDepartment === departmentFilter);
+      }
+    }
 
     setSearchResults(results);
     setSelectedRide(null);
@@ -85,7 +103,6 @@ const Index = () => {
     { icon: Leaf, title: "Eco Friendly", desc: "Reduce carbon footprint" },
   ];
 
-  // Get featured rides for empty state — show one with map
   const featuredRides = mockRides.filter(r => r.bookedPassengers && r.bookedPassengers.length > 0);
   const regularRides = mockRides.filter(r => !r.bookedPassengers || r.bookedPassengers.length === 0).slice(0, 2);
 
@@ -105,8 +122,16 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="max-w-3xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="max-w-3xl mx-auto space-y-3">
             <SearchPanel onSearch={handleSearch} femaleOnly={femaleOnly} onFemaleOnlyChange={setFemaleOnly} />
+            <CircleOfTrustFilter
+              collegeFilter={collegeFilter}
+              departmentFilter={departmentFilter}
+              onCollegeChange={setCollegeFilter}
+              onDepartmentChange={setDepartmentFilter}
+              circleOnly={circleOnly}
+              onCircleOnlyChange={setCircleOnly}
+            />
           </motion.div>
 
           {/* Feature chips */}
@@ -121,6 +146,13 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Live Impact Dashboard */}
+      {!hasSearched && (
+        <section className="container mx-auto px-4 pb-4">
+          <ImpactDashboard className="max-w-3xl mx-auto" />
+        </section>
+      )}
 
       {/* Results */}
       {hasSearched && (
@@ -168,15 +200,16 @@ const Index = () => {
       {/* College Commute Section */}
       <CollegeRideSelector />
 
+      {/* Campus League */}
+      <CampusLeague />
+
       {/* Bro Code Section */}
       <BroCodeInvite />
 
-      {/* Empty state — Popular routes with featured partially booked rides */}
+      {/* Empty state — Popular routes */}
       {!hasSearched && (
         <section className="container mx-auto px-4 py-12">
           <h2 className="font-display font-bold text-xl text-foreground text-center mb-6">Popular Routes in Tamil Nadu</h2>
-
-          {/* Featured partially booked rides with maps */}
           {featuredRides.length > 0 && (
             <div className="mb-8">
               <h3 className="font-display font-semibold text-sm text-muted-foreground text-center mb-4">
@@ -189,7 +222,6 @@ const Index = () => {
               </div>
             </div>
           )}
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl mx-auto">
             {regularRides.map((ride, i) => (
               <RideCard key={ride.id} ride={ride} index={i} onClick={handleRideClick} />

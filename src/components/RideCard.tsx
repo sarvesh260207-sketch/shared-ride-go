@@ -4,6 +4,8 @@ import { RideMood, BroCodeLink } from "@/types/ride";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
 import MapView from "@/components/MapView";
+import VerifiedCircleBadge from "@/components/VerifiedCircleBadge";
+import GuardianShareButton from "@/components/GuardianShareButton";
 
 interface RideCardProps {
   ride: Ride;
@@ -32,7 +34,7 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
       onClick={() => onClick(ride)}
       className="saathi-card p-4 cursor-pointer group"
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full saathi-gradient-bg flex items-center justify-center text-primary-foreground font-display font-semibold text-sm">
             {ride.driverAvatar}
@@ -57,6 +59,15 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
             {ride.vehicleName}
           </div>
         </div>
+      </div>
+
+      {/* Verified Circle Badge */}
+      <div className="mb-2">
+        <VerifiedCircleBadge
+          verified={ride.driverVerified}
+          college={ride.driverCollege}
+          department={ride.driverDepartment}
+        />
       </div>
 
       {/* Selectable ride mood tags */}
@@ -107,9 +118,7 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
                   {bro.avatar}
                 </div>
                 <span className="text-foreground font-medium">{bro.name}</span>
-                {bro.college && (
-                  <span className="text-muted-foreground">• {bro.college}</span>
-                )}
+                {bro.college && <span className="text-muted-foreground">• {bro.college}</span>}
                 <span className="ml-auto text-primary text-[10px] font-bold">Connected</span>
               </div>
             ))}
@@ -136,7 +145,7 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
         </div>
       </div>
 
-      {/* Booked passengers with pickup/drop checkpoints */}
+      {/* Booked passengers */}
       {isPartiallyBooked && (
         <div className="mb-3 p-3 rounded-lg bg-muted/50 border border-border">
           <div className="flex items-center gap-1.5 mb-2">
@@ -167,7 +176,7 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
       {/* Checkpoint pills */}
       {ride.checkpoints.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {ride.checkpoints.map((cp, i) => {
+          {ride.checkpoints.map((cp) => {
             const isPickup = ride.bookedPassengers?.some(p => p.pickupCheckpoint === cp.name);
             const isDrop = ride.bookedPassengers?.some(p => p.dropCheckpoint === cp.name);
             return (
@@ -209,6 +218,7 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
             <MapPin className="w-3.5 h-3.5" />
             <span className="text-xs">{ride.totalDistance} km</span>
           </div>
+          <GuardianShareButton rideId={ride.id} driverName={ride.driverName} />
         </div>
         <div className="flex items-center gap-0.5 font-display font-bold text-primary">
           <IndianRupee className="w-4 h-4" />

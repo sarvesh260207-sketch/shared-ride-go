@@ -18,6 +18,9 @@ export interface Ride {
   driverName: string;
   driverAvatar: string;
   driverRating: number;
+  driverVerified?: boolean;
+  driverCollege?: string;
+  driverDepartment?: string;
   vehicleType: 'car' | 'bike';
   vehicleName: string;
   seatsAvailable: number;
