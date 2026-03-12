@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      campus_league: {
+        Row: {
+          college: string
+          department: string
+          id: string
+          member_count: number
+          total_co2_saved: number
+          total_distance: number
+          total_rides: number
+          updated_at: string
+        }
+        Insert: {
+          college: string
+          department: string
+          id?: string
+          member_count?: number
+          total_co2_saved?: number
+          total_distance?: number
+          total_rides?: number
+          updated_at?: string
+        }
+        Update: {
+          college?: string
+          department?: string
+          id?: string
+          member_count?: number
+          total_co2_saved?: number
+          total_distance?: number
+          total_rides?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      guardian_shares: {
+        Row: {
+          active: boolean
+          created_at: string
+          guardian_name: string
+          guardian_phone: string
+          id: string
+          ride_id: string | null
+          share_token: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          guardian_name: string
+          guardian_phone: string
+          id?: string
+          ride_id?: string | null
+          share_token?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          guardian_name?: string
+          guardian_phone?: string
+          id?: string
+          ride_id?: string | null
+          share_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_shares_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -63,6 +137,7 @@ export type Database = {
           college: string | null
           connections: number | null
           created_at: string
+          department: string | null
           display_name: string
           id: string
           location: string | null
@@ -80,6 +155,7 @@ export type Database = {
           college?: string | null
           connections?: number | null
           created_at?: string
+          department?: string | null
           display_name?: string
           id?: string
           location?: string | null
@@ -97,6 +173,7 @@ export type Database = {
           college?: string | null
           connections?: number | null
           created_at?: string
+          department?: string | null
           display_name?: string
           id?: string
           location?: string | null
@@ -157,6 +234,8 @@ export type Database = {
           destination: string
           destination_lat: number | null
           destination_lng: number | null
+          driver_college: string | null
+          driver_department: string | null
           id: string
           notes: string | null
           origin: string
@@ -175,6 +254,8 @@ export type Database = {
           destination: string
           destination_lat?: number | null
           destination_lng?: number | null
+          driver_college?: string | null
+          driver_department?: string | null
           id?: string
           notes?: string | null
           origin: string
@@ -193,6 +274,8 @@ export type Database = {
           destination?: string
           destination_lat?: number | null
           destination_lng?: number | null
+          driver_college?: string | null
+          driver_department?: string | null
           id?: string
           notes?: string | null
           origin?: string
@@ -202,6 +285,36 @@ export type Database = {
           seats_available?: number
           status?: Database["public"]["Enums"]["ride_status"]
           type?: Database["public"]["Enums"]["ride_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_type: string
+          co2_saved: number
+          created_at: string
+          id: string
+          rides_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badge_type?: string
+          co2_saved?: number
+          created_at?: string
+          id?: string
+          rides_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badge_type?: string
+          co2_saved?: number
+          created_at?: string
+          id?: string
+          rides_count?: number
           updated_at?: string
           user_id?: string
         }
