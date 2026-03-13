@@ -125,7 +125,7 @@ const TravelPlanner = () => {
                 </div>
                 <PlacesAutocomplete
                   value={to}
-                  onChange={(val, place) => { setTo(val); if (place) setToPlace(place); }}
+                  onChange={(val) => { setTo(val); }}
                   placeholder="Destination (e.g. Pondicherry Cafe)"
                   iconColor="text-accent"
                   className="flex-1"
