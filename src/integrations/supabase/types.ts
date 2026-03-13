@@ -47,6 +47,62 @@ export type Database = {
         }
         Relationships: []
       }
+      carbon_ledger: {
+        Row: {
+          actual_emissions_g: number
+          bau_emissions_g: number
+          created_at: string
+          delta_g: number
+          distance_km: number
+          entry_hash: string
+          id: string
+          occupancy: number
+          previous_hash: string | null
+          ride_id: string | null
+          user_id: string
+          vehicle_type: string
+          verified: boolean
+        }
+        Insert: {
+          actual_emissions_g?: number
+          bau_emissions_g?: number
+          created_at?: string
+          delta_g?: number
+          distance_km?: number
+          entry_hash: string
+          id?: string
+          occupancy?: number
+          previous_hash?: string | null
+          ride_id?: string | null
+          user_id: string
+          vehicle_type?: string
+          verified?: boolean
+        }
+        Update: {
+          actual_emissions_g?: number
+          bau_emissions_g?: number
+          created_at?: string
+          delta_g?: number
+          distance_km?: number
+          entry_hash?: string
+          id?: string
+          occupancy?: number
+          previous_hash?: string | null
+          ride_id?: string | null
+          user_id?: string
+          vehicle_type?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carbon_ledger_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_shares: {
         Row: {
           active: boolean
@@ -317,6 +373,42 @@ export type Database = {
           rides_count?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      virtual_bus_stops: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          lat: number
+          lng: number
+          name: string
+          popularity: number
+          stop_type: string
+          zone: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          popularity?: number
+          stop_type?: string
+          zone?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          popularity?: number
+          stop_type?: string
+          zone?: string
         }
         Relationships: []
       }
