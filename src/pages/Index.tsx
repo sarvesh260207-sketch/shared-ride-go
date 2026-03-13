@@ -198,6 +198,9 @@ const Index = () => {
         </section>
       )}
 
+      {/* Virtual Bus Stops */}
+      <VirtualBusStops />
+
       {/* College Commute Section */}
       <CollegeRideSelector />
 
