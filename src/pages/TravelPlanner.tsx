@@ -115,7 +115,7 @@ const TravelPlanner = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <PlacesAutocomplete
                   value={from}
-                  onChange={(val, place) => { setFrom(val); if (place) setFromPlace(place); }}
+                  onChange={(val) => { setFrom(val); }}
                   placeholder="Starting point (e.g. Chennai Egmore)"
                   iconColor="text-primary"
                   className="flex-1"
@@ -125,7 +125,7 @@ const TravelPlanner = () => {
                 </div>
                 <PlacesAutocomplete
                   value={to}
-                  onChange={(val, place) => { setTo(val); if (place) setToPlace(place); }}
+                  onChange={(val) => { setTo(val); }}
                   placeholder="Destination (e.g. Pondicherry Cafe)"
                   iconColor="text-accent"
                   className="flex-1"

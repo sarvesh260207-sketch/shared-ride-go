@@ -13,14 +13,12 @@ import CampusLeague from "@/components/CampusLeague";
 import VirtualBusStops from "@/components/VirtualBusStops";
 import { mockRides } from "@/data/mockRides";
 import { Ride, Checkpoint } from "@/types/ride";
-import { getDirectionsRoute, generateCheckpointsFromRoute } from "@/lib/googleMaps";
 
 const Index = () => {
   const navigate = useNavigate();
   const [searchResults, setSearchResults] = useState<Ride[]>([]);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [routeCheckpoints, setRouteCheckpoints] = useState<Checkpoint[]>([]);
   const [femaleOnly, setFemaleOnly] = useState(false);
 
   // Circle of Trust filters
@@ -28,12 +26,7 @@ const Index = () => {
   const [collegeFilter, setCollegeFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
-  const handleSearch = async (
-    from: string,
-    to: string,
-    fromPlace?: google.maps.places.PlaceResult,
-    toPlace?: google.maps.places.PlaceResult
-  ) => {
+  const handleSearch = (from: string, to: string) => {
     let results = mockRides.filter(
       (r) =>
         r.from.toLowerCase().includes(from.toLowerCase()) ||
@@ -47,7 +40,6 @@ const Index = () => {
     if (results.length === 0) results = mockRides;
     if (femaleOnly) results = results.filter((r) => r.femaleOnly);
 
-    // Apply Circle of Trust filters
     if (circleOnly) {
       if (collegeFilter !== "all") {
         results = results.filter((r) => r.driverCollege === collegeFilter);
@@ -60,34 +52,6 @@ const Index = () => {
     setSearchResults(results);
     setSelectedRide(null);
     setHasSearched(true);
-
-    if (fromPlace?.geometry?.location && toPlace?.geometry?.location) {
-      try {
-        const origin = {
-          lat: fromPlace.geometry.location.lat(),
-          lng: fromPlace.geometry.location.lng(),
-        };
-        const destination = {
-          lat: toPlace.geometry.location.lat(),
-          lng: toPlace.geometry.location.lng(),
-        };
-        const dirResult = await getDirectionsRoute(origin, destination);
-        const route = dirResult.routes[0];
-        if (route) {
-          const cps = generateCheckpointsFromRoute(route, 5);
-          const checkpoints: Checkpoint[] = cps.map((cp, i) => ({
-            id: `route-${i}`,
-            name: cp.name,
-            lat: cp.lat,
-            lng: cp.lng,
-            arrivalTime: "",
-          }));
-          setRouteCheckpoints(checkpoints);
-        }
-      } catch (err) {
-        console.error("Directions error:", err);
-      }
-    }
   };
 
   const handleRideClick = (ride: Ride) => {
@@ -96,7 +60,7 @@ const Index = () => {
   };
 
   const displayCheckpoints =
-    selectedRide?.checkpoints || routeCheckpoints.length > 0 ? routeCheckpoints : searchResults[0]?.checkpoints || [];
+    selectedRide?.checkpoints || searchResults[0]?.checkpoints || [];
 
   const features = [
     { icon: IndianRupee, title: "₹12/km Car • ₹7/km Bike", desc: "Share costs, not compromise" },
@@ -135,7 +99,6 @@ const Index = () => {
             />
           </motion.div>
 
-          {/* Feature chips */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="flex flex-wrap justify-center gap-4 mt-8">
             {features.map((f) => (
               <div key={f.title} className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border text-sm">
@@ -148,14 +111,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Live Impact Dashboard */}
       {!hasSearched && (
         <section className="container mx-auto px-4 pb-4">
           <ImpactDashboard className="max-w-3xl mx-auto" />
         </section>
       )}
 
-      {/* Results */}
       {hasSearched && (
         <section className="container mx-auto px-4 pb-16">
           <div className="flex flex-col lg:flex-row gap-6">
@@ -198,19 +159,11 @@ const Index = () => {
         </section>
       )}
 
-      {/* Virtual Bus Stops */}
       <VirtualBusStops />
-
-      {/* College Commute Section */}
       <CollegeRideSelector />
-
-      {/* Campus League */}
       <CampusLeague />
-
-      {/* Bro Code Section */}
       <BroCodeInvite />
 
-      {/* Empty state — Popular routes */}
       {!hasSearched && (
         <section className="container mx-auto px-4 py-12">
           <h2 className="font-display font-bold text-xl text-foreground text-center mb-6">Popular Routes in Tamil Nadu</h2>
