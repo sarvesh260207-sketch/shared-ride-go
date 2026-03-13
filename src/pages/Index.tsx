@@ -10,6 +10,7 @@ import BroCodeInvite from "@/components/BroCodeInvite";
 import ImpactDashboard from "@/components/ImpactDashboard";
 import CircleOfTrustFilter from "@/components/CircleOfTrustFilter";
 import CampusLeague from "@/components/CampusLeague";
+import VirtualBusStops from "@/components/VirtualBusStops";
 import { mockRides } from "@/data/mockRides";
 import { Ride, Checkpoint } from "@/types/ride";
 import { getDirectionsRoute, generateCheckpointsFromRoute } from "@/lib/googleMaps";
