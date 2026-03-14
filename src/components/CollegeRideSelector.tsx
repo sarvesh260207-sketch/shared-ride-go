@@ -29,6 +29,7 @@ const COLLEGES: CollegeOption[] = [
   { id: "iitm", name: "IIT Madras", shortName: "IIT-M", area: "Adyar", lat: 12.9915, lng: 80.2337 },
   { id: "pachaiyappas", name: "Pachaiyappa's College", shortName: "Pachaiyappa's", area: "Chetpet", lat: 13.0736, lng: 80.2418 },
   { id: "wcc", name: "Women's Christian College (WCC)", shortName: "WCC", area: "College Rd", lat: 13.0487, lng: 80.2400 },
+  { id: "gnc", name: "Guru Nanak College", shortName: "GNC", area: "Velachery", lat: 12.9812, lng: 80.2198 },
 ];
 
 /* ─── Nearby checkpoints for colleges ─── */
