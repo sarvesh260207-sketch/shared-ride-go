@@ -11,11 +11,12 @@ interface CollegeScore {
 }
 
 const MOCK_LEADERBOARD: CollegeScore[] = [
+  { college: "MCC", totalRides: 720, co2Saved: 1832, members: 156 },
   { college: "Anna University", totalRides: 640, co2Saved: 1646, members: 143 },
   { college: "SRM University", totalRides: 275, co2Saved: 702, members: 52 },
-  { college: "MCC", totalRides: 245, co2Saved: 623, members: 41 },
   { college: "Loyola College", totalRides: 218, co2Saved: 554, members: 38 },
   { college: "VIT Chennai", totalRides: 196, co2Saved: 498, members: 35 },
+  { college: "Guru Nanak College", totalRides: 185, co2Saved: 470, members: 33 },
   { college: "SSN College", totalRides: 178, co2Saved: 452, members: 30 },
   { college: "IIT Madras", totalRides: 165, co2Saved: 419, members: 28 },
   { college: "Stella Maris College", totalRides: 142, co2Saved: 361, members: 24 },
