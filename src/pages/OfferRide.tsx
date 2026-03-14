@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Bike, Clock, Plus, Trash2, IndianRupee } from "lucide-react";
+import { ArrowLeft, Car, Bike, Clock, Plus, Trash2, IndianRupee, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PRICE_PER_KM } from "@/types/ride";
+import { PRICING, VehicleCategory, calcRidePrice } from "@/types/ride";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
 import { motion } from "framer-motion";
 
+const VEHICLE_OPTIONS: { key: VehicleCategory; icon: typeof Car; label: string }[] = [
+  { key: "bike_petrol", icon: Bike, label: "Bike" },
+  { key: "bike_ev", icon: Zap, label: "Bike EV" },
+  { key: "car_petrol", icon: Car, label: "Car" },
+  { key: "car_ev", icon: Zap, label: "Car EV" },
+];
+
 const OfferRide = () => {
   const navigate = useNavigate();
-  const [vehicleType, setVehicleType] = useState<'car' | 'bike'>('car');
+  const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>("car_petrol");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [departureTime, setDepartureTime] = useState("");
@@ -24,7 +31,9 @@ const OfferRide = () => {
     setStops(updated);
   };
 
-  const price = distance * PRICE_PER_KM[vehicleType];
+  const isBike = vehicleCategory.startsWith("bike");
+  const pricing = PRICING[vehicleCategory];
+  const totalPrice = calcRidePrice(vehicleCategory, distance);
 
   const handlePublish = () => {
     navigate("/");
@@ -43,44 +52,41 @@ const OfferRide = () => {
           {/* Vehicle Type */}
           <div className="mb-6">
             <label className="text-sm font-medium text-foreground mb-2 block">Vehicle Type</label>
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setVehicleType('car'); setSeats(3); }}
-                className={`flex-1 py-3 rounded-xl border-2 flex items-center justify-center gap-2 font-display font-semibold text-sm transition-all ${vehicleType === 'car' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
-              >
-                <Car className="w-4 h-4" /> Car — ₹{PRICE_PER_KM.car}/km
-              </button>
-              <button
-                onClick={() => { setVehicleType('bike'); setSeats(1); }}
-                className={`flex-1 py-3 rounded-xl border-2 flex items-center justify-center gap-2 font-display font-semibold text-sm transition-all ${vehicleType === 'bike' ? 'border-accent bg-accent/5 text-accent-foreground' : 'border-border text-muted-foreground'}`}
-              >
-                <Bike className="w-4 h-4" /> Bike — ₹{PRICE_PER_KM.bike}/km
-              </button>
+            <div className="grid grid-cols-2 gap-2">
+              {VEHICLE_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const p = PRICING[opt.key];
+                const selected = vehicleCategory === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => { setVehicleCategory(opt.key); setSeats(opt.key.startsWith("bike") ? 1 : 3); }}
+                    className={`py-3 rounded-xl border-2 flex items-center justify-center gap-2 font-display font-semibold text-sm transition-all ${selected ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
+                  >
+                    <Icon className="w-4 h-4" /> {opt.label} — ₹{p.perKm}/km
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* From & To with Google Places */}
+          {/* Pricing breakdown */}
+          <div className="mb-6 p-3 rounded-xl bg-muted/50 border border-border text-xs text-muted-foreground space-y-1">
+            <div className="flex justify-between"><span>Base fare</span><span className="text-foreground font-medium">₹{pricing.baseFare}</span></div>
+            <div className="flex justify-between"><span>Per km rate</span><span className="text-foreground font-medium">₹{pricing.perKm}/km</span></div>
+            <div className="flex justify-between"><span>Zhoop App Fee</span><span className="text-foreground font-medium">₹{pricing.appFee}</span></div>
+          </div>
+
+          {/* From & To */}
           <div className="space-y-3 mb-6">
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Pickup</label>
-              <PlacesAutocomplete
-                value={from}
-                onChange={(val) => setFrom(val)}
-                placeholder="Starting location in Tamil Nadu"
-                iconColor="text-primary"
-              />
+              <PlacesAutocomplete value={from} onChange={setFrom} placeholder="Starting location in Tamil Nadu" iconColor="text-primary" />
             </div>
 
-            {/* Stops */}
             {stops.map((stop, i) => (
               <div key={i} className="flex gap-2">
-                <PlacesAutocomplete
-                  value={stop}
-                  onChange={(val) => updateStop(i, val)}
-                  placeholder={`Stop ${i + 1} in Tamil Nadu`}
-                  iconColor="text-muted-foreground"
-                  className="flex-1"
-                />
+                <PlacesAutocomplete value={stop} onChange={(val) => updateStop(i, val)} placeholder={`Stop ${i + 1}`} iconColor="text-muted-foreground" className="flex-1" />
                 <button onClick={() => removeStop(i)} className="p-3 rounded-xl border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -93,12 +99,7 @@ const OfferRide = () => {
 
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Drop-off</label>
-              <PlacesAutocomplete
-                value={to}
-                onChange={(val) => setTo(val)}
-                placeholder="Final destination in Tamil Nadu"
-                iconColor="text-accent"
-              />
+              <PlacesAutocomplete value={to} onChange={setTo} placeholder="Final destination in Tamil Nadu" iconColor="text-accent" />
             </div>
           </div>
 
@@ -113,7 +114,7 @@ const OfferRide = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Seats</label>
-              <input type="number" min={1} max={vehicleType === 'car' ? 4 : 1} value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring" />
+              <input type="number" min={1} max={isBike ? 1 : 4} value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Distance (km)</label>
@@ -123,9 +124,9 @@ const OfferRide = () => {
 
           {/* Price Preview */}
           <div className="saathi-card p-4 mb-6 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Estimated fare per rider</span>
+            <span className="text-sm text-muted-foreground">Total fare per rider</span>
             <span className="font-display font-bold text-primary text-xl flex items-center gap-0.5">
-              <IndianRupee className="w-5 h-5" />{price}
+              <IndianRupee className="w-5 h-5" />{totalPrice}
             </span>
           </div>
 

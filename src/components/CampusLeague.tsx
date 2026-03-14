@@ -1,26 +1,24 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Crown, Medal, Star, TrendingUp, Leaf } from "lucide-react";
+import { Trophy, Flame, Crown, Medal, Star, Leaf } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface DepartmentScore {
+interface CollegeScore {
   college: string;
-  department: string;
   totalRides: number;
   co2Saved: number;
   members: number;
 }
 
-// Mock leaderboard data — in production from campus_league table
-const MOCK_LEADERBOARD: DepartmentScore[] = [
-  { college: "Anna University", department: "CSE", totalRides: 342, co2Saved: 890, members: 78 },
-  { college: "Anna University", department: "MECH", totalRides: 298, co2Saved: 756, members: 65 },
-  { college: "SRM University", department: "CSE", totalRides: 275, co2Saved: 702, members: 52 },
-  { college: "MCC", department: "Commerce", totalRides: 245, co2Saved: 623, members: 41 },
-  { college: "Loyola College", department: "ECE", totalRides: 218, co2Saved: 554, members: 38 },
-  { college: "VIT Chennai", department: "IT", totalRides: 196, co2Saved: 498, members: 35 },
-  { college: "SSN College", department: "CSE", totalRides: 178, co2Saved: 452, members: 30 },
-  { college: "IIT Madras", department: "MECH", totalRides: 165, co2Saved: 419, members: 28 },
+const MOCK_LEADERBOARD: CollegeScore[] = [
+  { college: "Anna University", totalRides: 640, co2Saved: 1646, members: 143 },
+  { college: "SRM University", totalRides: 275, co2Saved: 702, members: 52 },
+  { college: "MCC", totalRides: 245, co2Saved: 623, members: 41 },
+  { college: "Loyola College", totalRides: 218, co2Saved: 554, members: 38 },
+  { college: "VIT Chennai", totalRides: 196, co2Saved: 498, members: 35 },
+  { college: "SSN College", totalRides: 178, co2Saved: 452, members: 30 },
+  { college: "IIT Madras", totalRides: 165, co2Saved: 419, members: 28 },
+  { college: "Stella Maris College", totalRides: 142, co2Saved: 361, members: 24 },
 ];
 
 const TIERS = [
@@ -30,16 +28,13 @@ const TIERS = [
   { name: "Rookie", icon: Star, minRides: 0, color: "text-muted-foreground", bg: "bg-muted", border: "border-border", desc: "Just getting started" },
 ];
 
-const getTier = (rides: number) => TIERS.find((t) => rides >= t.minRides) || TIERS[TIERS.length - 1];
-
 const CampusLeague = () => {
   const [tab, setTab] = useState("leaderboard");
-
   const podium = MOCK_LEADERBOARD.slice(0, 3);
   const rest = MOCK_LEADERBOARD.slice(3);
 
   return (
-    <section className="container mx-auto px-4 py-12">
+    <div>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent-foreground text-xs font-bold border border-accent/20 mb-3">
@@ -47,9 +42,9 @@ const CampusLeague = () => {
             CAMPUS LEAGUE
           </div>
           <h2 className="font-display font-bold text-2xl text-foreground">
-            Greenest Departments in Chennai
+            Greenest Colleges in Chennai
           </h2>
-          <p className="text-muted-foreground text-sm mt-1">Department-level rivalry for the planet 🌍</p>
+          <p className="text-muted-foreground text-sm mt-1">College-level rivalry for the planet 🌍</p>
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="max-w-2xl mx-auto">
@@ -63,16 +58,15 @@ const CampusLeague = () => {
           </TabsList>
 
           <TabsContent value="leaderboard">
-            {/* Top 3 Podium */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[1, 0, 2].map((idx) => {
-                const dept = podium[idx];
-                if (!dept) return null;
+                const col = podium[idx];
+                if (!col) return null;
                 const rank = idx + 1;
                 const isFirst = idx === 0;
                 return (
                   <motion.div
-                    key={dept.department + dept.college}
+                    key={col.college}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: rank * 0.1 }}
@@ -81,23 +75,21 @@ const CampusLeague = () => {
                     <div className={`text-2xl mb-1 ${isFirst ? "" : "text-xl"}`}>
                       {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
                     </div>
-                    <p className="font-display font-bold text-sm text-foreground">{dept.department}</p>
-                    <p className="text-[10px] text-muted-foreground">{dept.college}</p>
+                    <p className="font-display font-bold text-sm text-foreground">{col.college}</p>
                     <div className="mt-2 flex items-center justify-center gap-1 text-primary">
                       <Leaf className="w-3 h-3" />
-                      <span className="font-display font-bold text-sm">{dept.co2Saved} kg</span>
+                      <span className="font-display font-bold text-sm">{col.co2Saved} kg</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{dept.totalRides} rides • {dept.members} riders</p>
+                    <p className="text-[10px] text-muted-foreground">{col.totalRides} rides • {col.members} riders</p>
                   </motion.div>
                 );
               })}
             </div>
 
-            {/* Rest of rankings */}
             <div className="space-y-2">
-              {rest.map((dept, i) => (
+              {rest.map((col, i) => (
                 <motion.div
-                  key={dept.department + dept.college}
+                  key={col.college}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: (i + 3) * 0.06 }}
@@ -107,15 +99,14 @@ const CampusLeague = () => {
                     {i + 4}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display font-semibold text-sm text-foreground">{dept.department}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{dept.college}</p>
+                    <p className="font-display font-semibold text-sm text-foreground truncate">{col.college}</p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-primary text-xs font-bold">
                       <Leaf className="w-3 h-3" />
-                      {dept.co2Saved} kg
+                      {col.co2Saved} kg
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{dept.totalRides} rides</p>
+                    <p className="text-[10px] text-muted-foreground">{col.totalRides} rides</p>
                   </div>
                 </motion.div>
               ))}
@@ -156,7 +147,7 @@ const CampusLeague = () => {
           </TabsContent>
         </Tabs>
       </motion.div>
-    </section>
+    </div>
   );
 };
 
