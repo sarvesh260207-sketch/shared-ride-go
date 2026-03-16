@@ -15,11 +15,17 @@ import CampusLeague from "@/components/CampusLeague";
 import VirtualBusStops from "@/components/VirtualBusStops";
 import { mockRides } from "@/data/mockRides";
 import { Ride, PRICING } from "@/types/ride";
+import { resolveLocation, haversineKm } from "@/lib/distance";
+
+export interface RideWithWalkInfo extends Ride {
+  walkDistanceKm?: number;
+  nearestCheckpoint?: string;
+}
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("rides");
-  const [searchResults, setSearchResults] = useState<Ride[]>([]);
+  const [searchResults, setSearchResults] = useState<RideWithWalkInfo[]>([]);
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [femaleOnly, setFemaleOnly] = useState(false);
@@ -29,7 +35,11 @@ const Index = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
   const handleSearch = (from: string, to: string) => {
-    let results = mockRides.filter(
+    const fromCoords = resolveLocation(from);
+    const toCoords = resolveLocation(to);
+
+    // Text-based matching first
+    let results: RideWithWalkInfo[] = mockRides.filter(
       (r) =>
         r.from.toLowerCase().includes(from.toLowerCase()) ||
         r.to.toLowerCase().includes(to.toLowerCase()) ||
@@ -38,7 +48,33 @@ const Index = () => {
           cp.name.toLowerCase().includes(to.toLowerCase())
         )
     );
-    if (results.length === 0) results = mockRides;
+
+    // If no text match but we have coords, find rides with nearby checkpoints (within 10km)
+    if (results.length === 0 && fromCoords) {
+      results = mockRides.filter((r) =>
+        r.checkpoints.some((cp) => haversineKm(fromCoords.lat, fromCoords.lng, cp.lat, cp.lng) < 10)
+      );
+    }
+    if (results.length === 0) results = [...mockRides];
+
+    // Compute walking distance to nearest pickup checkpoint
+    if (fromCoords) {
+      results = results.map((r) => {
+        let minDist = Infinity;
+        let nearestCp = "";
+        r.checkpoints.forEach((cp) => {
+          const d = haversineKm(fromCoords.lat, fromCoords.lng, cp.lat, cp.lng);
+          if (d < minDist) {
+            minDist = d;
+            nearestCp = cp.name;
+          }
+        });
+        return { ...r, walkDistanceKm: Math.round(minDist * 10) / 10, nearestCheckpoint: nearestCp };
+      });
+      // Sort by nearest pickup
+      results.sort((a, b) => (a.walkDistanceKm ?? 99) - (b.walkDistanceKm ?? 99));
+    }
+
     if (femaleOnly) results = results.filter((r) => r.femaleOnly);
     if (circleOnly) {
       if (collegeFilter !== "all") results = results.filter((r) => r.driverCollege === collegeFilter);

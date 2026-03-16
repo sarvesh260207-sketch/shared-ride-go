@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX, Link2 } from "lucide-react";
+import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX, Link2, Navigation } from "lucide-react";
 import { RideMood, BroCodeLink } from "@/types/ride";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
@@ -8,7 +8,7 @@ import VerifiedCircleBadge from "@/components/VerifiedCircleBadge";
 import GuardianShareButton from "@/components/GuardianShareButton";
 
 interface RideCardProps {
-  ride: Ride;
+  ride: Ride & { walkDistanceKm?: number; nearestCheckpoint?: string };
   index: number;
   onClick: (ride: Ride) => void;
   showDetailedMap?: boolean;
@@ -122,6 +122,22 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
                 <span className="ml-auto text-primary text-[10px] font-bold">Connected</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Walking distance to nearest checkpoint */}
+      {ride.walkDistanceKm !== undefined && ride.nearestCheckpoint && (
+        <div className="mb-3 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-center gap-2">
+          <Navigation className="w-4 h-4 text-primary flex-shrink-0" />
+          <div className="text-xs">
+            <span className="font-semibold text-foreground">
+              {ride.walkDistanceKm < 1
+                ? `${Math.round(ride.walkDistanceKm * 1000)}m`
+                : `${ride.walkDistanceKm} km`}
+            </span>
+            <span className="text-muted-foreground"> to nearest pickup: </span>
+            <span className="font-medium text-primary">{ride.nearestCheckpoint}</span>
           </div>
         </div>
       )}
