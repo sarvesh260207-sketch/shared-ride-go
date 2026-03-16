@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX, Link2 } from "lucide-react";
+import { Car, Bike, Star, Clock, MapPin, Users, IndianRupee, ShieldCheck, UserCircle, MessageCircle, Handshake, VolumeX, Link2, Navigation } from "lucide-react";
 import { RideMood, BroCodeLink } from "@/types/ride";
 import { Ride } from "@/types/ride";
 import { motion } from "framer-motion";
@@ -8,7 +8,7 @@ import VerifiedCircleBadge from "@/components/VerifiedCircleBadge";
 import GuardianShareButton from "@/components/GuardianShareButton";
 
 interface RideCardProps {
-  ride: Ride;
+  ride: Ride & { walkDistanceKm?: number; nearestCheckpoint?: string };
   index: number;
   onClick: (ride: Ride) => void;
   showDetailedMap?: boolean;
