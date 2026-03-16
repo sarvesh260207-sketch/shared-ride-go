@@ -1,4 +1,5 @@
 import { useState } from "react";
+import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Car, Bike, IndianRupee, Shield, Leaf, Search, Trophy, MapPinned, Users } from "lucide-react";
@@ -63,14 +64,17 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 saathi-gradient-bg opacity-5" />
         <div className="container mx-auto px-4 py-10 sm:py-16">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-2xl mx-auto mb-6">
-            <h1 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-3 tracking-tight">
-              Travel Green,{" "}
-              <span className="zhoop-gradient-text">Earn Green.</span>
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Connect with co-commuters heading your way in Tamil Nadu.
-            </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex items-center justify-center gap-4 max-w-2xl mx-auto mb-6">
+            <img src={zhoopLogo} alt="Zhoop logo" className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg flex-shrink-0" />
+            <div className="text-left">
+              <h1 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-1 tracking-tight">
+                Travel Green,{" "}
+                <span className="zhoop-gradient-text">Earn Green.</span>
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Connect with co-commuters heading your way in Tamil Nadu.
+              </p>
+            </div>
           </motion.div>
 
           {/* Pricing chips */}
