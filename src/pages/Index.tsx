@@ -76,10 +76,6 @@ const Index = () => {
               </p>
             </div>
           </motion.div>
-            <p className="text-muted-foreground text-lg">
-              Connect with co-commuters heading your way in Tamil Nadu.
-            </p>
-          </motion.div>
 
           {/* Pricing chips */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-2 mb-6">
