@@ -24,9 +24,9 @@ export interface PricingTier {
 
 export const PRICING: Record<VehicleCategory, PricingTier> = {
   bike_petrol: { baseFare: 10, perKm: 4.5, appFee: 15, label: 'Bike (Petrol)' },
-  bike_ev:     { baseFare: 5,  perKm: 3.0, appFee: 15, label: 'Bike (EV)' },
+  bike_ev:     { baseFare: 10, perKm: 4.5, appFee: 15, label: 'Bike (EV)' },
   car_petrol:  { baseFare: 30, perKm: 8.0, appFee: 30, label: 'Car (Petrol)' },
-  car_ev:      { baseFare: 20, perKm: 6.0, appFee: 30, label: 'Car (EV)' },
+  car_ev:      { baseFare: 30, perKm: 8.0, appFee: 30, label: 'Car (EV)' },
 };
 
 export const calcRidePrice = (category: VehicleCategory, distanceKm: number): number => {
