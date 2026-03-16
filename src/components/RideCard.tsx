@@ -126,6 +126,22 @@ const RideCard = ({ ride, index, onClick, showDetailedMap = false }: RideCardPro
         </div>
       )}
 
+      {/* Walking distance to nearest checkpoint */}
+      {ride.walkDistanceKm !== undefined && ride.nearestCheckpoint && (
+        <div className="mb-3 p-2.5 rounded-lg bg-primary/5 border border-primary/15 flex items-center gap-2">
+          <Navigation className="w-4 h-4 text-primary flex-shrink-0" />
+          <div className="text-xs">
+            <span className="font-semibold text-foreground">
+              {ride.walkDistanceKm < 1
+                ? `${Math.round(ride.walkDistanceKm * 1000)}m`
+                : `${ride.walkDistanceKm} km`}
+            </span>
+            <span className="text-muted-foreground"> to nearest pickup: </span>
+            <span className="font-medium text-primary">{ride.nearestCheckpoint}</span>
+          </div>
+        </div>
+      )}
+
       {/* Route with checkpoints */}
       <div className="flex items-center gap-2 mb-3">
         <div className="flex flex-col items-center">
