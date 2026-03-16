@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { User, PlusCircle, Route, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 
 const Header = () => {
   const { user } = useAuth();
@@ -9,7 +10,8 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center gap-2">
+          <img src={zhoopLogo} alt="Zhoop logo" className="h-10 w-10 rounded-full object-cover" />
           <span className="font-display font-bold text-2xl text-foreground tracking-tight">Zhoop</span>
         </Link>
 
