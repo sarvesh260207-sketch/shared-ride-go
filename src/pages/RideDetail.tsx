@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Car, Bike, Star, Clock, MapPin, Users, IndianRupee, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, Car, Bike, Star, Clock, MapPin, Users, IndianRupee, Phone, MessageCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockRides } from "@/data/mockRides";
 import MapView from "@/components/MapView";
@@ -112,6 +112,18 @@ const RideDetail = () => {
               <Button className="w-full mt-4 saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base gap-2">
                 <Users className="w-5 h-5" /> Request to Join
               </Button>
+              <Button
+                variant="destructive"
+                className="w-full mt-3 rounded-xl font-display font-semibold h-12 text-base gap-2 animate-pulse hover:animate-none"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = 'tel:112';
+                  }
+                }}
+              >
+                <AlertTriangle className="w-5 h-5" /> SOS Emergency
+              </Button>
+              <p className="text-[10px] text-muted-foreground text-center mt-1">Calls national emergency helpline 112</p>
             </div>
           </motion.div>
         </div>

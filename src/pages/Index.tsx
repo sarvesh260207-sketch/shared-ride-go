@@ -2,7 +2,7 @@ import { useState } from "react";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Bike, IndianRupee, Shield, Leaf, Search, Trophy, MapPinned, Users } from "lucide-react";
+import { Car, Bike, IndianRupee, Shield, Leaf, Search, Trophy, MapPinned, Users, Scale } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchPanel from "@/components/SearchPanel";
 import RideCard from "@/components/RideCard";
@@ -122,6 +122,34 @@ const Index = () => {
                 <span className="text-muted-foreground">₹{t.baseFare} + ₹{t.perKm}/km</span>
               </div>
             ))}
+          </motion.div>
+
+          {/* Legal Disclaimer Sticker */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5 }}
+            className="max-w-xl mx-auto mb-6"
+          >
+            <div className="relative p-4 rounded-xl border-2 border-primary/30 bg-primary/5 backdrop-blur-sm">
+              <div className="absolute -top-3 left-4 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                <Scale className="w-3 h-3" /> Legal Notice
+              </div>
+              <p className="text-sm text-foreground font-medium leading-relaxed mt-1">
+                🚫 We are <span className="font-bold text-primary">NOT a taxi or cab aggregator.</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Zhoop is a <span className="font-semibold text-foreground">peer-to-peer cost-sharing platform</span>. 
+                Co-travellers split actual travel expenses (fuel, tolls) — no fares, no commissions, no employer-employee relationship. 
+                Fully compliant with the <span className="font-semibold text-foreground">Motor Vehicles Act, 1988</span> — 
+                ride-sharing for personal convenience is not a commercial transport activity.
+              </p>
+              <div className="flex items-center gap-2 mt-2.5">
+                <div className="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent-foreground">Bill Splitting Only</div>
+                <div className="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent-foreground">No Commercial Fares</div>
+                <div className="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-[10px] font-bold text-accent-foreground">Peer-to-Peer</div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
