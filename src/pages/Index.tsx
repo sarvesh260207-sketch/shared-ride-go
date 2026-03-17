@@ -2,7 +2,7 @@ import { useState } from "react";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Bike, IndianRupee, Shield, Leaf, Search, Trophy, MapPinned, Users } from "lucide-react";
+import { Car, Bike, IndianRupee, Shield, Leaf, Search, Trophy, MapPinned, Users, Scale } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchPanel from "@/components/SearchPanel";
 import RideCard from "@/components/RideCard";
