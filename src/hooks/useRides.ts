@@ -36,23 +36,29 @@ export function useActiveRides() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("rides")
-        .select("*, profile:profiles!rides_user_id_fkey(display_name, avatar_url, college, department, rating, verified)")
+        .select("*")
         .eq("status", "active")
         .eq("type", "offer")
         .order("departure_time", { ascending: true });
 
-      if (error) {
-        // If FK join fails, fetch without profile
-        const { data: fallback, error: err2 } = await supabase
-          .from("rides")
-          .select("*")
-          .eq("status", "active")
-          .eq("type", "offer")
-          .order("departure_time", { ascending: true });
-        if (err2) throw err2;
-        return (fallback ?? []) as DbRide[];
+      if (error) throw error;
+      const rides = (data ?? []) as DbRide[];
+
+      // Fetch profiles for all drivers
+      const userIds = [...new Set(rides.map((r) => r.user_id))];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, avatar_url, college, department, rating, verified")
+          .in("user_id", userIds);
+
+        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+        rides.forEach((r) => {
+          (r as any).profile = profileMap.get(r.user_id) ?? undefined;
+        });
       }
-      return (data ?? []) as DbRide[];
+
+      return rides;
     },
     refetchInterval: 15000, // auto-refresh every 15s
   });
