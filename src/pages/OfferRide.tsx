@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { PRICING, VehicleCategory, calcRidePrice } from "@/types/ride";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { resolveLocation } from "@/lib/distance";
 
 const VEHICLE_OPTIONS: { key: VehicleCategory; icon: typeof Car; label: string }[] = [
   { key: "bike_petrol", icon: Bike, label: "Bike" },
@@ -15,6 +19,7 @@ const VEHICLE_OPTIONS: { key: VehicleCategory; icon: typeof Car; label: string }
 
 const OfferRide = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>("car_petrol");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -22,6 +27,8 @@ const OfferRide = () => {
   const [seats, setSeats] = useState(3);
   const [stops, setStops] = useState<string[]>([""]);
   const [distance, setDistance] = useState<number>(10);
+  const [notes, setNotes] = useState("");
+  const [publishing, setPublishing] = useState(false);
 
   const addStop = () => setStops([...stops, ""]);
   const removeStop = (i: number) => setStops(stops.filter((_, idx) => idx !== i));
@@ -35,8 +42,56 @@ const OfferRide = () => {
   const pricing = PRICING[vehicleCategory];
   const totalPrice = calcRidePrice(vehicleCategory, distance);
 
-  const handlePublish = () => {
-    navigate("/");
+  const handlePublish = async () => {
+    if (!from || !to || !departureTime) {
+      toast.error("Please fill in pickup, drop-off, and departure time");
+      return;
+    }
+    if (!user) return;
+
+    setPublishing(true);
+
+    // Resolve coordinates
+    const fromCoords = resolveLocation(from);
+    const toCoords = resolveLocation(to);
+
+    // Build departure timestamp for today
+    const today = new Date();
+    const [hours, minutes] = departureTime.split(":").map(Number);
+    today.setHours(hours, minutes, 0, 0);
+
+    // Get user profile for college/department
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("college, department")
+      .eq("user_id", user.id)
+      .single();
+
+    const { error } = await supabase.from("rides").insert({
+      user_id: user.id,
+      origin: from,
+      destination: to,
+      origin_lat: fromCoords?.lat ?? null,
+      origin_lng: fromCoords?.lng ?? null,
+      destination_lat: toCoords?.lat ?? null,
+      destination_lng: toCoords?.lng ?? null,
+      departure_time: today.toISOString(),
+      seats_available: seats,
+      price: totalPrice,
+      type: "offer" as const,
+      notes: notes || null,
+      driver_college: profile?.college ?? null,
+      driver_department: profile?.department ?? null,
+    });
+
+    setPublishing(false);
+
+    if (error) {
+      toast.error("Failed to publish ride: " + error.message);
+    } else {
+      toast.success("Ride published successfully! 🎉");
+      navigate("/");
+    }
   };
 
   return (
@@ -122,6 +177,17 @@ const OfferRide = () => {
             </div>
           </div>
 
+          {/* Notes */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-foreground mb-1 block">Notes (optional)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any info for co-riders (e.g., AC car, music preferences...)"
+              className="w-full px-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
+            />
+          </div>
+
           {/* Price Preview */}
           <div className="saathi-card p-4 mb-6 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Total fare per rider</span>
@@ -130,8 +196,12 @@ const OfferRide = () => {
             </span>
           </div>
 
-          <Button onClick={handlePublish} className="w-full saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base">
-            Publish Ride
+          <Button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="w-full saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base"
+          >
+            {publishing ? "Publishing..." : "Publish Ride"}
           </Button>
         </motion.div>
       </div>
