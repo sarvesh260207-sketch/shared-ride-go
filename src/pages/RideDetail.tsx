@@ -1,15 +1,61 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Car, Bike, Star, Clock, MapPin, Users, IndianRupee, Phone, MessageCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Car, Star, Clock, MapPin, Users, IndianRupee, Phone, MessageCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mockRides } from "@/data/mockRides";
-import MapView from "@/components/MapView";
+import { useRideById } from "@/hooks/useRides";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useState } from "react";
 
 const RideDetail = () => {
   const { id } = useParams();
-  const ride = mockRides.find((r) => r.id === id);
+  const { user } = useAuth();
+  const { data: ride, isLoading, error } = useRideById(id);
+  const [requesting, setRequesting] = useState(false);
 
-  if (!ride) {
+  const handleRequestJoin = async () => {
+    if (!user || !id) return;
+
+    // Check if already requested
+    const { data: existing } = await supabase
+      .from("ride_requests")
+      .select("id")
+      .eq("ride_id", id)
+      .eq("requester_id", user.id)
+      .maybeSingle();
+
+    if (existing) {
+      toast.info("You've already requested to join this ride");
+      return;
+    }
+
+    setRequesting(true);
+    const { error } = await supabase.from("ride_requests").insert({
+      ride_id: id,
+      requester_id: user.id,
+      seats_requested: 1,
+      message: null,
+    });
+    setRequesting(false);
+
+    if (error) {
+      toast.error("Failed to send request: " + error.message);
+    } else {
+      toast.success("Request sent! The driver will be notified 🎉");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !ride) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -20,112 +66,127 @@ const RideDetail = () => {
     );
   }
 
+  const profile = (ride as any).profile;
+  const driverName = profile?.display_name || "Driver";
+  const initials = driverName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+  const rating = profile?.rating ?? 4.5;
+  const isOwnRide = user?.id === ride.user_id;
+  const seatsLeft = ride.seats_available - ((ride as any).acceptedCount ?? 0);
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-3xl">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to rides
         </Link>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left */}
-          <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} className="flex-1 space-y-4">
-            {/* Driver Info */}
-            <div className="saathi-card p-5">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 rounded-full saathi-gradient-bg flex items-center justify-center text-primary-foreground font-display font-bold text-lg">
-                  {ride.driverAvatar}
-                </div>
-                <div className="flex-1">
-                  <h2 className="font-display font-bold text-xl text-foreground">{ride.driverName}</h2>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-accent text-accent" />
-                    <span className="text-sm text-muted-foreground">{ride.driverRating} rating</span>
-                  </div>
-                </div>
-                <div className={ride.vehicleType === 'car' ? 'saathi-chip-car' : 'saathi-chip-bike'}>
-                  {ride.vehicleType === 'car' ? <Car className="w-3 h-3" /> : <Bike className="w-3 h-3" />}
-                  {ride.vehicleName}
-                </div>
+        <div className="space-y-4">
+          {/* Driver Info */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="saathi-card p-5">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full saathi-gradient-bg flex items-center justify-center text-primary-foreground font-display font-bold text-lg">
+                {initials}
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 gap-2 rounded-lg text-sm">
-                  <Phone className="w-4 h-4" /> Call
-                </Button>
-                <Button variant="outline" className="flex-1 gap-2 rounded-lg text-sm">
-                  <MessageCircle className="w-4 h-4" /> Message
-                </Button>
+              <div className="flex-1">
+                <h2 className="font-display font-bold text-xl text-foreground">{driverName}</h2>
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 fill-accent text-accent" />
+                  <span className="text-sm text-muted-foreground">{rating} rating</span>
+                  {profile?.verified && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">✓ Verified</span>}
+                </div>
+                {ride.driver_college && (
+                  <span className="text-xs text-muted-foreground">{ride.driver_college} {ride.driver_department && `• ${ride.driver_department}`}</span>
+                )}
               </div>
             </div>
+          </motion.div>
 
-            {/* Route Checkpoints */}
-            <div className="saathi-card p-5">
-              <h3 className="font-display font-semibold text-foreground mb-4">Route & Checkpoints</h3>
-              <div className="space-y-0">
-                {ride.checkpoints.map((cp, i) => (
-                  <div key={cp.id} className="flex items-start gap-3 relative">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-3 h-3 rounded-full z-10 ${i === 0 ? 'bg-primary' : i === ride.checkpoints.length - 1 ? 'bg-accent' : 'bg-border'}`} />
-                      {i < ride.checkpoints.length - 1 && <div className="w-0.5 h-8 bg-border" />}
-                    </div>
-                    <div className="pb-6 -mt-0.5">
-                      <p className="text-sm font-medium text-foreground">{cp.name}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {cp.arrivalTime}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+          {/* Route */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="saathi-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-4">Route Details</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-3 h-3 rounded-full bg-primary mt-1" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{ride.origin}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {format(new Date(ride.departure_time), "hh:mm a, MMM d yyyy")}
+                  </p>
+                </div>
+              </div>
+              <div className="ml-1.5 w-0.5 h-6 bg-border" />
+              <div className="flex items-start gap-3">
+                <div className="w-3 h-3 rounded-full bg-accent mt-1" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{ride.destination}</p>
+                </div>
               </div>
             </div>
+          </motion.div>
 
-            {/* Pricing */}
-            <div className="saathi-card p-5">
-              <h3 className="font-display font-semibold text-foreground mb-3">Fare Breakdown</h3>
-              <div className="space-y-2 text-sm">
+          {/* Pricing */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="saathi-card p-5">
+            <h3 className="font-display font-semibold text-foreground mb-3">Ride Info</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Seats available</span>
+                <span className="text-foreground font-medium">{seatsLeft} of {ride.seats_available}</span>
+              </div>
+              {ride.price && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Distance</span>
-                  <span className="text-foreground font-medium">{ride.totalDistance} km</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rate ({ride.vehicleType})</span>
-                  <span className="text-foreground font-medium">₹{ride.pricePerKm}/km</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Seats available</span>
-                  <span className="text-foreground font-medium">{ride.seatsAvailable}</span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between">
-                  <span className="font-display font-semibold text-foreground">Your Share</span>
+                  <span className="text-muted-foreground">Cost share per rider</span>
                   <span className="font-display font-bold text-primary text-lg flex items-center gap-0.5">
-                    <IndianRupee className="w-4 h-4" />{ride.totalPrice}
+                    <IndianRupee className="w-4 h-4" />{ride.price}
                   </span>
                 </div>
-              </div>
+              )}
+              {ride.notes && (
+                <div className="pt-2 border-t border-border">
+                  <span className="text-muted-foreground">Notes:</span>
+                  <p className="text-foreground mt-1">{ride.notes}</p>
+                </div>
+              )}
             </div>
           </motion.div>
 
-          {/* Right - Map */}
-          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} className="lg:w-[400px]">
-            <div className="sticky top-20">
-              <MapView checkpoints={ride.checkpoints} className="h-[450px]" simulateDriver />
-              <Button className="w-full mt-4 saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base gap-2">
-                <Users className="w-5 h-5" /> Request to Join
-              </Button>
-              <Button
-                variant="destructive"
-                className="w-full mt-3 rounded-xl font-display font-semibold h-12 text-base gap-2 animate-pulse hover:animate-none"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.href = 'tel:112';
-                  }
-                }}
-              >
-                <AlertTriangle className="w-5 h-5" /> SOS Emergency
-              </Button>
-              <p className="text-[10px] text-muted-foreground text-center mt-1">Calls national emergency helpline 112</p>
+          {/* Action buttons */}
+          {!isOwnRide && seatsLeft > 0 && (
+            <Button
+              onClick={handleRequestJoin}
+              disabled={requesting}
+              className="w-full saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base gap-2"
+            >
+              {requesting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Users className="w-5 h-5" />}
+              {requesting ? "Sending request..." : "Request to Join"}
+            </Button>
+          )}
+
+          {isOwnRide && (
+            <div className="text-center p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <p className="text-sm font-medium text-primary">This is your ride</p>
+              <p className="text-xs text-muted-foreground mt-1">Check your profile for incoming ride requests</p>
             </div>
-          </motion.div>
+          )}
+
+          {seatsLeft <= 0 && !isOwnRide && (
+            <div className="text-center p-4 rounded-xl bg-muted border border-border">
+              <p className="text-sm font-medium text-foreground">This ride is fully booked</p>
+            </div>
+          )}
+
+          {/* SOS */}
+          <Button
+            variant="destructive"
+            className="w-full rounded-xl font-display font-semibold h-12 text-base gap-2 animate-pulse hover:animate-none"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = 'tel:112';
+              }
+            }}
+          >
+            <AlertTriangle className="w-5 h-5" /> SOS Emergency
+          </Button>
+          <p className="text-[10px] text-muted-foreground text-center">Calls national emergency helpline 112</p>
         </div>
       </div>
     </div>
