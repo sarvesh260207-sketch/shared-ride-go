@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { User, PlusCircle, Route, LogIn } from "lucide-react";
+import { User, PlusCircle, Route, LogIn, Shield, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
@@ -16,6 +16,18 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Link to="/transit" className="hidden sm:block">
+            <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
+              <Navigation className="w-3.5 h-3.5" />
+              Transit
+            </Button>
+          </Link>
+          <Link to="/pink-corridor" className="hidden sm:block">
+            <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg border-pink-300 text-pink-700 hover:bg-pink-50">
+              <Shield className="w-3.5 h-3.5" />
+              Pink
+            </Button>
+          </Link>
           <Link to="/travel-planner">
             <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
               <Route className="w-3.5 h-3.5" />
