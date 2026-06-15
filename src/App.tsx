@@ -10,6 +10,8 @@ import RideDetail from "./pages/RideDetail";
 import OfferRide from "./pages/OfferRide";
 import Profile from "./pages/Profile";
 import TravelPlanner from "./pages/TravelPlanner";
+import PinkCorridor from "./pages/PinkCorridor";
+import Transit from "./pages/Transit";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="/ride/:id" element={<RideDetail />} />
             <Route path="/offer-ride" element={<OfferRide />} />
             <Route path="/travel-planner" element={<TravelPlanner />} />
+            <Route path="/pink-corridor" element={<PinkCorridor />} />
+            <Route path="/transit" element={<Transit />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
