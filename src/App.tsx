@@ -14,6 +14,7 @@ import PinkCorridor from "./pages/PinkCorridor";
 import Transit from "./pages/Transit";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import WorkflowDownload from "@/components/WorkflowDownload";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <WorkflowDownload />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
