@@ -1,26 +1,39 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Bike, Clock, Plus, Trash2, IndianRupee, Zap } from "lucide-react";
+import { ArrowLeft, Car, Bike, Clock, Plus, Trash2, IndianRupee, Upload, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PRICING, VehicleCategory, calcRidePrice } from "@/types/ride";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
+import LiveTracker from "@/components/LiveTracker";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { resolveLocation } from "@/lib/distance";
+import {
+  INDIAN_VEHICLES,
+  FUEL_PRICE,
+  PLATFORM_FEE,
+  calcFare,
+  type FuelType,
+} from "@/data/vehicleMileage";
 
-const VEHICLE_OPTIONS: { key: VehicleCategory; icon: typeof Car; label: string }[] = [
-  { key: "bike_petrol", icon: Bike, label: "Bike" },
-  { key: "bike_ev", icon: Zap, label: "Bike EV" },
-  { key: "car_petrol", icon: Car, label: "Car" },
-  { key: "car_ev", icon: Zap, label: "Car EV" },
-];
+interface SavedVehicle {
+  id: string;
+  make: string;
+  model: string;
+  fuel_type: FuelType;
+  mileage_kmpl: number;
+  number_plate: string;
+  vehicle_photo_url: string;
+  plate_photo_url: string;
+  status: "pending" | "verified" | "manual_review";
+}
 
 const OfferRide = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>("car_petrol");
+
+  // Route
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [departureTime, setDepartureTime] = useState("");
@@ -28,7 +41,37 @@ const OfferRide = () => {
   const [stops, setStops] = useState<string[]>([""]);
   const [distance, setDistance] = useState<number>(10);
   const [notes, setNotes] = useState("");
+
+  // Vehicle
+  const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
+  const [mode, setMode] = useState<"select" | "new">("new");
+
+  // New vehicle form
+  const [vehicleIdx, setVehicleIdx] = useState<number>(15); // default Maruti Alto
+  const [numberPlate, setNumberPlate] = useState("");
+  const [vehiclePhoto, setVehiclePhoto] = useState<File | null>(null);
+  const [platePhoto, setPlatePhoto] = useState<File | null>(null);
+  const vehiclePhotoRef = useRef<HTMLInputElement>(null);
+  const platePhotoRef = useRef<HTMLInputElement>(null);
+
   const [publishing, setPublishing] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("vehicles")
+      .select("*")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length) {
+          setSavedVehicles(data as any);
+          setSelectedVehicleId(data[0].id);
+          setMode("select");
+        }
+      });
+  }, [user]);
 
   const addStop = () => setStops([...stops, ""]);
   const removeStop = (i: number) => setStops(stops.filter((_, idx) => idx !== i));
@@ -38,9 +81,30 @@ const OfferRide = () => {
     setStops(updated);
   };
 
-  const isBike = vehicleCategory.startsWith("bike");
-  const pricing = PRICING[vehicleCategory];
-  const totalPrice = calcRidePrice(vehicleCategory, distance);
+  const activeVehicleMeta = (() => {
+    if (mode === "select") {
+      const v = savedVehicles.find((x) => x.id === selectedVehicleId);
+      return v
+        ? { mileage: Number(v.mileage_kmpl), fuel: v.fuel_type, label: `${v.make} ${v.model}`, isBike: false }
+        : null;
+    }
+    const v = INDIAN_VEHICLES[vehicleIdx];
+    return { mileage: v.mileage, fuel: v.fuel, label: `${v.make} ${v.model}`, isBike: v.category === "bike" };
+  })();
+
+  const isBike = activeVehicleMeta?.isBike ?? false;
+  const fare = activeVehicleMeta
+    ? calcFare(distance, activeVehicleMeta.mileage, activeVehicleMeta.fuel, seats)
+    : null;
+
+  const uploadPhoto = async (file: File, kind: "vehicle" | "plate") => {
+    if (!user) throw new Error("Not signed in");
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("vehicle-photos").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return path;
+  };
 
   const handlePublish = async () => {
     if (!from || !to || !departureTime) {
@@ -51,46 +115,82 @@ const OfferRide = () => {
 
     setPublishing(true);
 
-    // Resolve coordinates
-    const fromCoords = resolveLocation(from);
-    const toCoords = resolveLocation(to);
+    try {
+      let vehicleId = selectedVehicleId;
 
-    // Build departure timestamp for today
-    const today = new Date();
-    const [hours, minutes] = departureTime.split(":").map(Number);
-    today.setHours(hours, minutes, 0, 0);
+      // New vehicle path → validate, upload, insert
+      if (mode === "new") {
+        if (!numberPlate.trim()) throw new Error("Please enter your vehicle's number plate");
+        if (!vehiclePhoto) throw new Error("Please upload a photo of your vehicle");
+        if (!platePhoto) throw new Error("Please upload a photo of the number plate");
 
-    // Get user profile for college/department
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("college, department")
-      .eq("user_id", user.id)
-      .single();
+        const [vehiclePath, platePath] = await Promise.all([
+          uploadPhoto(vehiclePhoto, "vehicle"),
+          uploadPhoto(platePhoto, "plate"),
+        ]);
 
-    const { error } = await supabase.from("rides").insert({
-      user_id: user.id,
-      origin: from,
-      destination: to,
-      origin_lat: fromCoords?.lat ?? null,
-      origin_lng: fromCoords?.lng ?? null,
-      destination_lat: toCoords?.lat ?? null,
-      destination_lng: toCoords?.lng ?? null,
-      departure_time: today.toISOString(),
-      seats_available: seats,
-      price: totalPrice,
-      type: "offer" as const,
-      notes: notes || null,
-      driver_college: profile?.college ?? null,
-      driver_department: profile?.department ?? null,
-    });
+        const meta = INDIAN_VEHICLES[vehicleIdx];
+        const { data: vRow, error: vErr } = await supabase
+          .from("vehicles")
+          .insert({
+            owner_id: user.id,
+            make: meta.make,
+            model: meta.model,
+            fuel_type: meta.fuel,
+            mileage_kmpl: meta.mileage,
+            number_plate: numberPlate.trim().toUpperCase(),
+            vehicle_photo_url: vehiclePath,
+            plate_photo_url: platePath,
+            status: "pending",
+          })
+          .select("id")
+          .single();
+        if (vErr) throw vErr;
+        vehicleId = vRow!.id;
+      }
 
-    setPublishing(false);
+      if (!vehicleId) throw new Error("Select or add a vehicle to continue");
 
-    if (error) {
-      toast.error("Failed to publish ride: " + error.message);
-    } else {
+      const fromCoords = resolveLocation(from);
+      const toCoords = resolveLocation(to);
+      const today = new Date();
+      const [hours, minutes] = departureTime.split(":").map(Number);
+      today.setHours(hours, minutes, 0, 0);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("college, department")
+        .eq("user_id", user.id)
+        .single();
+
+      const { error } = await supabase.from("rides").insert({
+        user_id: user.id,
+        origin: from,
+        destination: to,
+        origin_lat: fromCoords?.lat ?? null,
+        origin_lng: fromCoords?.lng ?? null,
+        destination_lat: toCoords?.lat ?? null,
+        destination_lng: toCoords?.lng ?? null,
+        departure_time: today.toISOString(),
+        seats_available: seats,
+        price: fare?.total ?? null,
+        distance_km: distance,
+        fuel_cost: fare?.fuelCost ?? null,
+        platform_fee: PLATFORM_FEE,
+        vehicle_id: vehicleId,
+        type: "offer" as const,
+        notes: notes || null,
+        driver_college: profile?.college ?? null,
+        driver_department: profile?.department ?? null,
+      });
+
+      if (error) throw error;
       toast.success("Ride published successfully! 🎉");
       navigate("/");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to publish ride");
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -104,33 +204,117 @@ const OfferRide = () => {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-display text-2xl font-bold text-foreground mb-6">Offer a Ride</h1>
 
-          {/* Vehicle Type */}
-          <div className="mb-6">
-            <label className="text-sm font-medium text-foreground mb-2 block">Vehicle Type</label>
-            <div className="grid grid-cols-2 gap-2">
-              {VEHICLE_OPTIONS.map((opt) => {
-                const Icon = opt.icon;
-                const p = PRICING[opt.key];
-                const selected = vehicleCategory === opt.key;
-                return (
+          {/* Vehicle selector */}
+          <div className="mb-6 saathi-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display font-semibold text-sm">Your vehicle</h3>
+              {savedVehicles.length > 0 && (
+                <div className="flex text-[11px] rounded-lg bg-muted p-0.5">
                   <button
-                    key={opt.key}
-                    onClick={() => { setVehicleCategory(opt.key); setSeats(opt.key.startsWith("bike") ? 1 : 3); }}
-                    className={`py-3 rounded-xl border-2 flex items-center justify-center gap-2 font-display font-semibold text-sm transition-all ${selected ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
+                    onClick={() => setMode("select")}
+                    className={`px-2 py-1 rounded-md ${mode === "select" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
                   >
-                    <Icon className="w-4 h-4" /> {opt.label} — ₹{p.perKm}/km
+                    Saved
                   </button>
-                );
-              })}
+                  <button
+                    onClick={() => setMode("new")}
+                    className={`px-2 py-1 rounded-md ${mode === "new" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+                  >
+                    Add new
+                  </button>
+                </div>
+              )}
             </div>
+
+            {mode === "select" && savedVehicles.length > 0 ? (
+              <select
+                value={selectedVehicleId}
+                onChange={(e) => setSelectedVehicleId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-card border border-input text-foreground text-sm"
+              >
+                {savedVehicles.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.make} {v.model} · {v.number_plate} ·{" "}
+                    {v.status === "verified" ? "✓ Verified" : v.status === "pending" ? "Pending verification" : "Manual review"}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="space-y-3">
+                <select
+                  value={vehicleIdx}
+                  onChange={(e) => setVehicleIdx(Number(e.target.value))}
+                  className="w-full px-3 py-2.5 rounded-xl bg-card border border-input text-foreground text-sm"
+                >
+                  {INDIAN_VEHICLES.map((v, i) => (
+                    <option key={i} value={i}>
+                      {v.category === "bike" ? "🏍️" : "🚗"} {v.make} {v.model} — {v.mileage} km/{v.fuel === "ev" ? "kWh-eq" : v.fuel === "cng" ? "kg" : "L"} ({v.fuel.toUpperCase()})
+                    </option>
+                  ))}
+                </select>
+
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Number Plate</label>
+                  <input
+                    type="text"
+                    value={numberPlate}
+                    onChange={(e) => setNumberPlate(e.target.value.toUpperCase())}
+                    placeholder="TN 01 AB 1234"
+                    maxLength={20}
+                    className="w-full px-3 py-2.5 rounded-xl bg-card border border-input text-foreground text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <UploadBox
+                    label="Vehicle photo"
+                    file={vehiclePhoto}
+                    onPick={() => vehiclePhotoRef.current?.click()}
+                  />
+                  <input
+                    ref={vehiclePhotoRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => setVehiclePhoto(e.target.files?.[0] ?? null)}
+                  />
+                  <UploadBox
+                    label="Number-plate photo"
+                    file={platePhoto}
+                    onPick={() => platePhotoRef.current?.click()}
+                  />
+                  <input
+                    ref={platePhotoRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => setPlatePhoto(e.target.files?.[0] ?? null)}
+                  />
+                </div>
+
+                <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2">
+                  <ShieldCheck className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    Your first rider will be asked to confirm these details match the actual vehicle. If they don't,
+                    Zhoop officials will contact you for manual verification.
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Pricing breakdown */}
-          <div className="mb-6 p-3 rounded-xl bg-muted/50 border border-border text-xs text-muted-foreground space-y-1">
-            <div className="flex justify-between"><span>Base fare</span><span className="text-foreground font-medium">₹{pricing.baseFare}</span></div>
-            <div className="flex justify-between"><span>Per km rate</span><span className="text-foreground font-medium">₹{pricing.perKm}/km</span></div>
-            <div className="flex justify-between"><span>Zhoop App Fee</span><span className="text-foreground font-medium">₹{pricing.appFee}</span></div>
-          </div>
+          {/* Live fare breakdown */}
+          {fare && (
+            <div className="mb-6 p-3 rounded-xl bg-muted/50 border border-border text-xs text-muted-foreground space-y-1">
+              <div className="flex justify-between"><span>Mileage ({activeVehicleMeta!.fuel.toUpperCase()})</span><span className="text-foreground font-medium">{activeVehicleMeta!.mileage} km/L</span></div>
+              <div className="flex justify-between"><span>Fuel price</span><span className="text-foreground font-medium">₹{FUEL_PRICE[activeVehicleMeta!.fuel]}/L</span></div>
+              <div className="flex justify-between"><span>Trip fuel cost ({distance} km)</span><span className="text-foreground font-medium">₹{fare.fuelCost}</span></div>
+              <div className="flex justify-between"><span>Split across {seats + 1} people</span><span className="text-foreground font-medium">₹{fare.perRiderShare}</span></div>
+              <div className="flex justify-between"><span>Zhoop platform fee</span><span className="text-foreground font-medium">₹{PLATFORM_FEE}</span></div>
+            </div>
+          )}
 
           {/* From & To */}
           <div className="space-y-3 mb-6">
@@ -172,10 +356,22 @@ const OfferRide = () => {
               <input type="number" min={1} max={isBike ? 1 : 4} value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Distance (km)</label>
+              <label className="text-sm font-medium text-foreground mb-1 block">Est. km</label>
               <input type="number" min={1} value={distance} onChange={(e) => setDistance(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl bg-card border border-input text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
           </div>
+
+          {/* Live GPS tracker preview */}
+          {activeVehicleMeta && (
+            <div className="mb-6">
+              <LiveTracker
+                mileage={activeVehicleMeta.mileage}
+                fuelType={activeVehicleMeta.fuel}
+                seats={seats}
+                onStop={(km) => setDistance(Math.max(1, Math.round(km * 100) / 100))}
+              />
+            </div>
+          )}
 
           {/* Notes */}
           <div className="mb-6">
@@ -189,24 +385,45 @@ const OfferRide = () => {
           </div>
 
           {/* Price Preview */}
-          <div className="saathi-card p-4 mb-6 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total fare per rider</span>
-            <span className="font-display font-bold text-primary text-xl flex items-center gap-0.5">
-              <IndianRupee className="w-5 h-5" />{totalPrice}
-            </span>
-          </div>
+          {fare && (
+            <div className="saathi-card p-4 mb-6 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Total per rider (fuel share + ₹5 fee)</span>
+              <span className="font-display font-bold text-primary text-xl flex items-center gap-0.5">
+                <IndianRupee className="w-5 h-5" />{fare.total.toFixed(2)}
+              </span>
+            </div>
+          )}
 
           <Button
             onClick={handlePublish}
             disabled={publishing}
             className="w-full saathi-gradient-bg rounded-xl font-display font-semibold text-primary-foreground border-0 hover:opacity-90 transition-opacity h-12 text-base"
           >
-            {publishing ? "Publishing..." : "Publish Ride"}
+            {publishing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Publishing...</> : "Publish Ride"}
           </Button>
         </motion.div>
       </div>
     </div>
   );
 };
+
+const UploadBox = ({ label, file, onPick }: { label: string; file: File | null; onPick: () => void }) => (
+  <button
+    type="button"
+    onClick={onPick}
+    className={`relative aspect-[4/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${
+      file ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+    }`}
+  >
+    {file ? (
+      <img src={URL.createObjectURL(file)} alt={label} className="absolute inset-0 w-full h-full object-cover rounded-[10px]" />
+    ) : (
+      <>
+        <Upload className="w-5 h-5 text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground text-center px-2">{label}</span>
+      </>
+    )}
+  </button>
+);
 
 export default OfferRide;
