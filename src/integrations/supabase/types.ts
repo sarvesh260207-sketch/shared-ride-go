@@ -290,24 +290,19 @@ export type Database = {
           destination: string
           destination_lat: number | null
           destination_lng: number | null
-          distance_km: number | null
           driver_college: string | null
           driver_department: string | null
-          fuel_cost: number | null
           id: string
-          live_distance_km: number | null
           notes: string | null
           origin: string
           origin_lat: number | null
           origin_lng: number | null
-          platform_fee: number
           price: number | null
           seats_available: number
           status: Database["public"]["Enums"]["ride_status"]
           type: Database["public"]["Enums"]["ride_type"]
           updated_at: string
           user_id: string
-          vehicle_id: string | null
         }
         Insert: {
           created_at?: string
@@ -315,24 +310,19 @@ export type Database = {
           destination: string
           destination_lat?: number | null
           destination_lng?: number | null
-          distance_km?: number | null
           driver_college?: string | null
           driver_department?: string | null
-          fuel_cost?: number | null
           id?: string
-          live_distance_km?: number | null
           notes?: string | null
           origin: string
           origin_lat?: number | null
           origin_lng?: number | null
-          platform_fee?: number
           price?: number | null
           seats_available?: number
           status?: Database["public"]["Enums"]["ride_status"]
           type?: Database["public"]["Enums"]["ride_type"]
           updated_at?: string
           user_id: string
-          vehicle_id?: string | null
         }
         Update: {
           created_at?: string
@@ -340,34 +330,21 @@ export type Database = {
           destination?: string
           destination_lat?: number | null
           destination_lng?: number | null
-          distance_km?: number | null
           driver_college?: string | null
           driver_department?: string | null
-          fuel_cost?: number | null
           id?: string
-          live_distance_km?: number | null
           notes?: string | null
           origin?: string
           origin_lat?: number | null
           origin_lng?: number | null
-          platform_fee?: number
           price?: number | null
           seats_available?: number
           status?: Database["public"]["Enums"]["ride_status"]
           type?: Database["public"]["Enums"]["ride_type"]
           updated_at?: string
           user_id?: string
-          vehicle_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "rides_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_badges: {
         Row: {
@@ -396,99 +373,6 @@ export type Database = {
           rides_count?: number
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      vehicle_verifications: {
-        Row: {
-          created_at: string
-          id: string
-          notes: string | null
-          plate_match: boolean
-          ride_id: string
-          rider_id: string
-          vehicle_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          plate_match: boolean
-          ride_id: string
-          rider_id: string
-          vehicle_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          plate_match?: boolean
-          ride_id?: string
-          rider_id?: string
-          vehicle_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vehicle_verifications_ride_id_fkey"
-            columns: ["ride_id"]
-            isOneToOne: false
-            referencedRelation: "rides"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vehicle_verifications_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vehicles: {
-        Row: {
-          created_at: string
-          fuel_type: Database["public"]["Enums"]["fuel_type"]
-          id: string
-          make: string
-          mileage_kmpl: number
-          model: string
-          number_plate: string
-          owner_id: string
-          plate_photo_url: string
-          status: Database["public"]["Enums"]["vehicle_status"]
-          updated_at: string
-          vehicle_photo_url: string
-          verified_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          fuel_type?: Database["public"]["Enums"]["fuel_type"]
-          id?: string
-          make: string
-          mileage_kmpl: number
-          model: string
-          number_plate: string
-          owner_id: string
-          plate_photo_url: string
-          status?: Database["public"]["Enums"]["vehicle_status"]
-          updated_at?: string
-          vehicle_photo_url: string
-          verified_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          fuel_type?: Database["public"]["Enums"]["fuel_type"]
-          id?: string
-          make?: string
-          mileage_kmpl?: number
-          model?: string
-          number_plate?: string
-          owner_id?: string
-          plate_photo_url?: string
-          status?: Database["public"]["Enums"]["vehicle_status"]
-          updated_at?: string
-          vehicle_photo_url?: string
-          verified_at?: string | null
         }
         Relationships: []
       }
@@ -536,11 +420,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      fuel_type: "petrol" | "diesel" | "ev" | "cng"
       ride_request_status: "pending" | "accepted" | "rejected" | "cancelled"
       ride_status: "active" | "in_progress" | "completed" | "cancelled"
       ride_type: "offer" | "request"
-      vehicle_status: "pending" | "verified" | "manual_review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -668,11 +550,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      fuel_type: ["petrol", "diesel", "ev", "cng"],
       ride_request_status: ["pending", "accepted", "rejected", "cancelled"],
       ride_status: ["active", "in_progress", "completed", "cancelled"],
       ride_type: ["offer", "request"],
-      vehicle_status: ["pending", "verified", "manual_review"],
     },
   },
 } as const

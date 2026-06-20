@@ -7,29 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
-import VehicleVerifyCard from "@/components/VehicleVerifyCard";
+import { useState } from "react";
 
 const RideDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { data: ride, isLoading, error } = useRideById(id);
   const [requesting, setRequesting] = useState(false);
-  const [vehicle, setVehicle] = useState<any>(null);
-  const [accepted, setAccepted] = useState(false);
-
-  useEffect(() => {
-    const vId = (ride as any)?.vehicle_id;
-    if (!vId) return;
-    supabase.from("vehicles").select("*").eq("id", vId).maybeSingle()
-      .then(({ data }) => setVehicle(data));
-  }, [(ride as any)?.vehicle_id]);
-
-  useEffect(() => {
-    if (!user || !id) return;
-    supabase.from("ride_requests").select("status").eq("ride_id", id).eq("requester_id", user.id).maybeSingle()
-      .then(({ data }) => setAccepted(data?.status === "accepted"));
-  }, [user, id]);
 
   const handleRequestJoin = async () => {
     if (!user || !id) return;
@@ -156,12 +140,6 @@ const RideDetail = () => {
                   </span>
                 </div>
               )}
-              {(ride as any).platform_fee && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Includes Zhoop platform fee</span>
-                  <span className="text-muted-foreground">₹{(ride as any).platform_fee}</span>
-                </div>
-              )}
               {ride.notes && (
                 <div className="pt-2 border-t border-border">
                   <span className="text-muted-foreground">Notes:</span>
@@ -170,11 +148,6 @@ const RideDetail = () => {
               )}
             </div>
           </motion.div>
-
-          {/* Vehicle verification (first rider after plate change) */}
-          {vehicle && accepted && user?.id !== ride.user_id && (
-            <VehicleVerifyCard rideId={ride.id} vehicle={vehicle} />
-          )}
 
           {/* Action buttons */}
           {!isOwnRide && seatsLeft > 0 && (
