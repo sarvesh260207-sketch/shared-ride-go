@@ -19,9 +19,11 @@ const RideDetail = () => {
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
-    if (!ride?.vehicle_id) return;
-    supabase.from("vehicles").select("*").eq("id", ride.vehicle_id).maybeSingle()
+    const vId = (ride as any)?.vehicle_id;
+    if (!vId) return;
+    supabase.from("vehicles").select("*").eq("id", vId).maybeSingle()
       .then(({ data }) => setVehicle(data));
+  }, [(ride as any)?.vehicle_id]);
   }, [(ride as any)?.vehicle_id]);
 
   useEffect(() => {
