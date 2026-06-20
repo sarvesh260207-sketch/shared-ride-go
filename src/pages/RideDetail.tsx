@@ -24,7 +24,6 @@ const RideDetail = () => {
     supabase.from("vehicles").select("*").eq("id", vId).maybeSingle()
       .then(({ data }) => setVehicle(data));
   }, [(ride as any)?.vehicle_id]);
-  }, [(ride as any)?.vehicle_id]);
 
   useEffect(() => {
     if (!user || !id) return;
