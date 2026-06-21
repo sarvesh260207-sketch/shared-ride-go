@@ -209,11 +209,13 @@ const Index = () => {
           <TabsContent value="community">
             <div className="space-y-8">
               <CollegeRideSelector />
-              <BroCodeInvite />
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Floating workflow PDF download — always reachable */}
+      <WorkflowDownload floating />
     </div>
   );
 };
