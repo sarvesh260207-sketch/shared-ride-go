@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,9 +11,31 @@ interface SearchPanelProps {
   onFemaleOnlyChange: (val: boolean) => void;
 }
 
+// Mock search hints cycle in the placeholder, showing real Indian-mileage prices.
+const FROM_HINTS = [
+  "T. Nagar, Chennai · Activa 6G ₹26",
+  "Anna Nagar · Ather 450X ₹8",
+  "Adyar · Swift ₹56",
+  "Madurai Periyar Stand · Splendor ₹20",
+  "Coimbatore Gandhipuram · Honda City ₹62",
+];
+const TO_HINTS = [
+  "Tambaram · ₹5 platform fee included",
+  "OMR Thoraipakkam · split with 3 riders",
+  "Tidel Park · ₹5 insurance optional",
+  "Mattuthavani · ARAI mileage based",
+  "Peelamedu · transparent fuel pricing",
+];
+
 const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelProps) => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [hintIdx, setHintIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setHintIdx((i) => (i + 1) % FROM_HINTS.length), 2800);
+    return () => clearInterval(t);
+  }, []);
 
   const handleSearch = () => {
     if (from && to) onSearch(from, to);
@@ -25,7 +47,7 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
         <PlacesAutocomplete
           value={from}
           onChange={setFrom}
-          placeholder="Pickup location in Tamil Nadu"
+          placeholder={`From: ${FROM_HINTS[hintIdx]}`}
           iconColor="text-primary"
           className="flex-1"
         />
@@ -37,7 +59,7 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
         <PlacesAutocomplete
           value={to}
           onChange={setTo}
-          placeholder="Drop location in Tamil Nadu"
+          placeholder={`To: ${TO_HINTS[hintIdx]}`}
           iconColor="text-accent"
           className="flex-1"
         />
