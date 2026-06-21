@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Bike, IndianRupee, Leaf, Search, Trophy, MapPinned, Users, Scale, Clock, MapPin } from "lucide-react";
+import { IndianRupee, Leaf, Search, Trophy, Users, Scale, Clock, MapPin, Fuel, Receipt, ShieldCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchPanel from "@/components/SearchPanel";
 import CollegeRideSelector from "@/components/CollegeRideSelector";
@@ -11,7 +11,8 @@ import ImpactDashboard from "@/components/ImpactDashboard";
 import CircleOfTrustFilter from "@/components/CircleOfTrustFilter";
 import CampusLeague from "@/components/CampusLeague";
 import VirtualBusStops from "@/components/VirtualBusStops";
-import { PRICING } from "@/types/ride";
+import WorkflowDownload from "@/components/WorkflowDownload";
+import { PLATFORM_FEE, INSURANCE_FEE, FUEL_PRICE } from "@/lib/pricing";
 import { useActiveRides, DbRide } from "@/hooks/useRides";
 import { format } from "date-fns";
 
