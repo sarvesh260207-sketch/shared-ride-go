@@ -79,15 +79,23 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Pricing chips */}
+          {/* Pricing chips — real fuel-based pricing */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-2 mb-6">
-            {Object.values(PRICING).map((t) => (
-              <div key={t.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
-                <IndianRupee className="w-3 h-3 text-primary" />
-                <span className="font-medium text-foreground">{t.label}</span>
-                <span className="text-muted-foreground">₹{t.baseFare} + ₹{t.perKm}/km</span>
-              </div>
-            ))}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <Fuel className="w-3 h-3 text-primary" />
+              <span className="font-medium text-foreground">Pay-by-fuel</span>
+              <span className="text-muted-foreground">₹{FUEL_PRICE.petrol}/L petrol</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <Receipt className="w-3 h-3 text-primary" />
+              <span className="font-medium text-foreground">Platform fee</span>
+              <span className="text-muted-foreground">flat ₹{PLATFORM_FEE}/ride</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <ShieldCheck className="w-3 h-3 text-accent-foreground" />
+              <span className="font-medium text-foreground">Insurance</span>
+              <span className="text-muted-foreground">optional ₹{INSURANCE_FEE}/ride</span>
+            </div>
           </motion.div>
 
           {/* Legal Disclaimer */}
