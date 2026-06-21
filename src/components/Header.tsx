@@ -3,6 +3,8 @@ import { User, PlusCircle, Route, LogIn, Shield, Navigation } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
+import PricingDialog from "@/components/PricingDialog";
+import WorkflowDownload from "@/components/WorkflowDownload";
 
 const Header = () => {
   const { user } = useAuth();
@@ -16,6 +18,12 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <PricingDialog />
+          </div>
+          <div className="hidden md:block">
+            <WorkflowDownload />
+          </div>
           <Link to="/transit" className="hidden sm:block">
             <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
               <Navigation className="w-3.5 h-3.5" />

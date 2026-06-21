@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Car, Bike, IndianRupee, Leaf, Search, Trophy, MapPinned, Users, Scale, Clock, MapPin } from "lucide-react";
+import { IndianRupee, Leaf, Search, Trophy, Users, Scale, Clock, MapPin, Fuel, Receipt, ShieldCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchPanel from "@/components/SearchPanel";
 import CollegeRideSelector from "@/components/CollegeRideSelector";
@@ -11,7 +11,8 @@ import ImpactDashboard from "@/components/ImpactDashboard";
 import CircleOfTrustFilter from "@/components/CircleOfTrustFilter";
 import CampusLeague from "@/components/CampusLeague";
 import VirtualBusStops from "@/components/VirtualBusStops";
-import { PRICING } from "@/types/ride";
+import WorkflowDownload from "@/components/WorkflowDownload";
+import { PLATFORM_FEE, INSURANCE_FEE, FUEL_PRICE } from "@/lib/pricing";
 import { useActiveRides, DbRide } from "@/hooks/useRides";
 import { format } from "date-fns";
 
@@ -78,15 +79,23 @@ const Index = () => {
             </div>
           </motion.div>
 
-          {/* Pricing chips */}
+          {/* Pricing chips — real fuel-based pricing */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex flex-wrap justify-center gap-2 mb-6">
-            {Object.values(PRICING).map((t) => (
-              <div key={t.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
-                <IndianRupee className="w-3 h-3 text-primary" />
-                <span className="font-medium text-foreground">{t.label}</span>
-                <span className="text-muted-foreground">₹{t.baseFare} + ₹{t.perKm}/km</span>
-              </div>
-            ))}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <Fuel className="w-3 h-3 text-primary" />
+              <span className="font-medium text-foreground">Pay-by-fuel</span>
+              <span className="text-muted-foreground">₹{FUEL_PRICE.petrol}/L petrol</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <Receipt className="w-3 h-3 text-primary" />
+              <span className="font-medium text-foreground">Platform fee</span>
+              <span className="text-muted-foreground">flat ₹{PLATFORM_FEE}/ride</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
+              <ShieldCheck className="w-3 h-3 text-accent-foreground" />
+              <span className="font-medium text-foreground">Insurance</span>
+              <span className="text-muted-foreground">optional ₹{INSURANCE_FEE}/ride</span>
+            </div>
           </motion.div>
 
           {/* Legal Disclaimer */}
@@ -133,7 +142,7 @@ const Index = () => {
 
           {/* RIDES TAB */}
           <TabsContent value="rides">
-            <div className="max-w-3xl mx-auto space-y-3 mb-8">
+            <div className="max-w-3xl mx-auto space-y-3 mb-6">
               <SearchPanel onSearch={handleSearch} femaleOnly={femaleOnly} onFemaleOnlyChange={setFemaleOnly} />
               <CircleOfTrustFilter
                 collegeFilter={collegeFilter}
@@ -143,6 +152,8 @@ const Index = () => {
                 circleOnly={circleOnly}
                 onCircleOnlyChange={setCircleOnly}
               />
+              {/* Bro Code — quick access right below search */}
+              <BroCodeInvite />
             </div>
 
             {isLoading ? (
@@ -198,11 +209,13 @@ const Index = () => {
           <TabsContent value="community">
             <div className="space-y-8">
               <CollegeRideSelector />
-              <BroCodeInvite />
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Floating workflow PDF download — always reachable */}
+      <WorkflowDownload floating />
     </div>
   );
 };
