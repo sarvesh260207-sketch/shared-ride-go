@@ -142,7 +142,7 @@ const Index = () => {
 
           {/* RIDES TAB */}
           <TabsContent value="rides">
-            <div className="max-w-3xl mx-auto space-y-3 mb-8">
+            <div className="max-w-3xl mx-auto space-y-3 mb-6">
               <SearchPanel onSearch={handleSearch} femaleOnly={femaleOnly} onFemaleOnlyChange={setFemaleOnly} />
               <CircleOfTrustFilter
                 collegeFilter={collegeFilter}
@@ -152,6 +152,8 @@ const Index = () => {
                 circleOnly={circleOnly}
                 onCircleOnlyChange={setCircleOnly}
               />
+              {/* Bro Code — quick access right below search */}
+              <BroCodeInvite />
             </div>
 
             {isLoading ? (
