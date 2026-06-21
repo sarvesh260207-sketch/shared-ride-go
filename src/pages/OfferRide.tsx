@@ -93,7 +93,7 @@ const OfferRide = () => {
             owner_id: user.id,
             make: spec.name.split(" ")[0],
             model: spec.name,
-            fuel_type: spec.fuel === "electric" ? "electric" : spec.fuel,
+            fuel_type: spec.fuel === "electric" ? "ev" : spec.fuel,
             mileage_kmpl: spec.mileageKmpl,
             number_plate: normalizedPlate,
             vehicle_photo_url: vehUrl,
