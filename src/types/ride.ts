@@ -22,22 +22,25 @@ export interface PricingTier {
   label: string;
 }
 
+// Legacy tier table — kept for compatibility but recomputed from real fuel pricing.
+// New code should import from '@/lib/pricing' (VEHICLE_CATALOG + calcPrice).
+import { PLATFORM_FEE, FUEL_PRICE } from "@/lib/pricing";
+
 export const PRICING: Record<VehicleCategory, PricingTier> = {
-  bike_petrol: { baseFare: 10, perKm: 4.5, appFee: 15, label: 'Bike (Petrol)' },
-  bike_ev:     { baseFare: 10, perKm: 4.5, appFee: 15, label: 'Bike (EV)' },
-  car_petrol:  { baseFare: 30, perKm: 8.0, appFee: 30, label: 'Car (Petrol)' },
-  car_ev:      { baseFare: 30, perKm: 8.0, appFee: 30, label: 'Car (EV)' },
+  bike_petrol: { baseFare: 0, perKm: +(FUEL_PRICE.petrol / 50).toFixed(2), appFee: PLATFORM_FEE, label: 'Bike (Petrol)' },
+  bike_ev:     { baseFare: 0, perKm: 0.35,                                  appFee: PLATFORM_FEE, label: 'Bike (EV)' },
+  car_petrol:  { baseFare: 0, perKm: +(FUEL_PRICE.petrol / 20).toFixed(2),  appFee: PLATFORM_FEE, label: 'Car (Petrol)' },
+  car_ev:      { baseFare: 0, perKm: 1.20,                                  appFee: PLATFORM_FEE, label: 'Car (EV)' },
 };
 
 export const calcRidePrice = (category: VehicleCategory, distanceKm: number): number => {
   const t = PRICING[category];
-  return t.baseFare + t.perKm * distanceKm + t.appFee;
+  return Math.round(t.baseFare + t.perKm * distanceKm + t.appFee);
 };
 
-// Legacy compat
 export const PRICE_PER_KM = {
-  car: 8,
-  bike: 4.5,
+  car: PRICING.car_petrol.perKm,
+  bike: PRICING.bike_petrol.perKm,
 } as const;
 
 export interface Ride {
