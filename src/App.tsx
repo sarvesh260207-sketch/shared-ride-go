@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import TravelPlanner from "./pages/TravelPlanner";
 import PinkCorridor from "./pages/PinkCorridor";
 import Transit from "./pages/Transit";
+import Corporate from "./pages/Corporate";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/travel-planner" element={<TravelPlanner />} />
             <Route path="/pink-corridor" element={<PinkCorridor />} />
             <Route path="/transit" element={<Transit />} />
+            <Route path="/corporate" element={<Corporate />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
