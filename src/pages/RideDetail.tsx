@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState } from "react";
+import IdlePrompt from "@/components/IdlePrompt";
 
 const RideDetail = () => {
   const { id } = useParams();
