@@ -188,8 +188,10 @@ const RideDetail = () => {
             <AlertTriangle className="w-5 h-5" /> SOS Emergency
           </Button>
           <p className="text-[10px] text-muted-foreground text-center">Calls national emergency helpline 112</p>
-        </div>
       </div>
+      {/* Simulated-GPS idle detector — active for the rider while viewing the ride */}
+      <IdlePrompt active={!!ride} onEndTrip={() => toast.success("Trip ended. Thanks for riding with Zhoop!")} />
+    </div>
     </div>
   );
 };
