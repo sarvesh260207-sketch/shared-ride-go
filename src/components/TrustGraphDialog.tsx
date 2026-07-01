@@ -195,7 +195,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
             <div className="p-3 flex flex-col gap-2 min-h-[340px]">
               {!ran ? (
                 <div className="text-[#5C7268] text-xs font-mono m-auto text-center p-10">
-                  Click "Find my ride" to<br />run the trust traversal →
+                  Click "▶ Start trust traversal" to<br />run the graph →
                 </div>
               ) : ordered.map((d, i) => {
                 const pct = Math.round(d.score * 100);
