@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
+import TrustGraphDialog from "@/components/TrustGraphDialog";
+
 
 interface SearchPanelProps {
   onSearch: (from: string, to: string) => void;
