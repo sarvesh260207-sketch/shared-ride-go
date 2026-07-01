@@ -154,6 +154,8 @@ const Index = () => {
                 circleOnly={circleOnly}
                 onCircleOnlyChange={setCircleOnly}
               />
+              {/* Demo ride — clicking runs the trust graph */}
+              <DemoTrustRide />
               {/* Bro Code — quick access right below search */}
               <BroCodeInvite />
               {/* ₹5/month insurance opt-in */}
