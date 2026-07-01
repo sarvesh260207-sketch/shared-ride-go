@@ -96,7 +96,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl bg-[#0B1410] text-[#EDEFEA] border-[#1D2D24] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[#0B1410] text-[#EDEFEA] border-[#1D2D24] p-0">
         <div className="p-6 pb-4 border-b border-[#1D2D24]">
           <DialogHeader>
             <div className="text-[11px] tracking-widest uppercase text-[#4ADE80] font-mono">Technical Differentiator 3.1</div>
