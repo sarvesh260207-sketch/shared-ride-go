@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
+import TrustGraphDialog from "@/components/TrustGraphDialog";
+
 
 interface SearchPanelProps {
   onSearch: (from: string, to: string) => void;
@@ -31,6 +33,7 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [hintIdx, setHintIdx] = useState(0);
+  const [trustOpen, setTrustOpen] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setHintIdx((i) => (i + 1) % FROM_HINTS.length), 2800);
@@ -38,8 +41,10 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
   }, []);
 
   const handleSearch = () => {
+    setTrustOpen(true);
     if (from && to) onSearch(from, to);
   };
+
 
   return (
     <div className="w-full space-y-3">
@@ -83,8 +88,10 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
         </Label>
         <span className="text-xs text-muted-foreground">— Show rides with verified female drivers & passengers</span>
       </div>
+      <TrustGraphDialog open={trustOpen} onOpenChange={setTrustOpen} from={from} to={to} />
     </div>
   );
 };
+
 
 export default SearchPanel;
