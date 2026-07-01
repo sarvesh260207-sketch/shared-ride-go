@@ -33,6 +33,7 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [hintIdx, setHintIdx] = useState(0);
+  const [trustOpen, setTrustOpen] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setHintIdx((i) => (i + 1) % FROM_HINTS.length), 2800);
@@ -40,8 +41,10 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
   }, []);
 
   const handleSearch = () => {
+    setTrustOpen(true);
     if (from && to) onSearch(from, to);
   };
+
 
   return (
     <div className="w-full space-y-3">
