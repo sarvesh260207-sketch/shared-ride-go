@@ -75,9 +75,6 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
 
   useEffect(() => { if (open) { setRan(false); } }, [open, scenarioKey]);
 
-  // auto-run once when opened
-  useEffect(() => { if (open && !ran) { const t = setTimeout(() => setRan(true), 350); return () => clearTimeout(t); } }, [open, ran]);
-
   const ordered = useMemo(() => {
     if (mode === "trust") return [...scored].sort((a, b) => b.score - a.score);
     const synth: Record<string, number> = { d1: 0.8, d2: 1.1, d3: 1.4, d4: 1.9 };
@@ -99,7 +96,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl bg-[#0B1410] text-[#EDEFEA] border-[#1D2D24] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-[#0B1410] text-[#EDEFEA] border-[#1D2D24] p-0">
         <div className="p-6 pb-4 border-b border-[#1D2D24]">
           <DialogHeader>
             <div className="text-[11px] tracking-widest uppercase text-[#4ADE80] font-mono">Technical Differentiator 3.1</div>
@@ -167,7 +164,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
             <div className="p-3 border-t border-[#1D2D24] flex gap-2 flex-wrap items-center">
               <button onClick={() => { setRan(false); setTimeout(() => setRan(true), 50); }}
                 className="bg-[#4ADE80] text-[#06140C] px-4 py-2 rounded-md font-semibold text-xs">
-                Find my ride
+                ▶ Start trust traversal
               </button>
               <button onClick={() => setRan(false)}
                 className="border border-[#1D2D24] text-[#8FA396] px-4 py-2 rounded-md text-xs">
@@ -198,7 +195,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
             <div className="p-3 flex flex-col gap-2 min-h-[340px]">
               {!ran ? (
                 <div className="text-[#5C7268] text-xs font-mono m-auto text-center p-10">
-                  Click "Find my ride" to<br />run the trust traversal →
+                  Click "▶ Start trust traversal" to<br />run the graph →
                 </div>
               ) : ordered.map((d, i) => {
                 const pct = Math.round(d.score * 100);

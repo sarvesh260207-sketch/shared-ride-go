@@ -13,6 +13,7 @@ import CampusLeague from "@/components/CampusLeague";
 import VirtualBusStops from "@/components/VirtualBusStops";
 import WorkflowDownload from "@/components/WorkflowDownload";
 import InsuranceSticker from "@/components/InsuranceSticker";
+import DemoTrustRide from "@/components/DemoTrustRide";
 import { PLATFORM_FEE, INSURANCE_FEE, FUEL_PRICE } from "@/lib/pricing";
 import { useActiveRides, DbRide } from "@/hooks/useRides";
 import { format } from "date-fns";
@@ -153,6 +154,8 @@ const Index = () => {
                 circleOnly={circleOnly}
                 onCircleOnlyChange={setCircleOnly}
               />
+              {/* Demo ride — clicking runs the trust graph */}
+              <DemoTrustRide />
               {/* Bro Code — quick access right below search */}
               <BroCodeInvite />
               {/* ₹5/month insurance opt-in */}

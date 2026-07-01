@@ -41,7 +41,6 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
   }, []);
 
   const handleSearch = () => {
-    setTrustOpen(true);
     if (from && to) onSearch(from, to);
   };
 
