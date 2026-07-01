@@ -88,8 +88,10 @@ const SearchPanel = ({ onSearch, femaleOnly, onFemaleOnlyChange }: SearchPanelPr
         </Label>
         <span className="text-xs text-muted-foreground">— Show rides with verified female drivers & passengers</span>
       </div>
+      <TrustGraphDialog open={trustOpen} onOpenChange={setTrustOpen} from={from} to={to} />
     </div>
   );
 };
+
 
 export default SearchPanel;
