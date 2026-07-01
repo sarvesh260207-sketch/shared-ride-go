@@ -164,7 +164,7 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
             <div className="p-3 border-t border-[#1D2D24] flex gap-2 flex-wrap items-center">
               <button onClick={() => { setRan(false); setTimeout(() => setRan(true), 50); }}
                 className="bg-[#4ADE80] text-[#06140C] px-4 py-2 rounded-md font-semibold text-xs">
-                Find my ride
+                ▶ Start trust traversal
               </button>
               <button onClick={() => setRan(false)}
                 className="border border-[#1D2D24] text-[#8FA396] px-4 py-2 rounded-md text-xs">
