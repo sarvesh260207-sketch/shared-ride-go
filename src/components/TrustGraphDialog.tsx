@@ -75,9 +75,6 @@ const TrustGraphDialog = ({ open, onOpenChange, from, to }: Props) => {
 
   useEffect(() => { if (open) { setRan(false); } }, [open, scenarioKey]);
 
-  // auto-run once when opened
-  useEffect(() => { if (open && !ran) { const t = setTimeout(() => setRan(true), 350); return () => clearTimeout(t); } }, [open, ran]);
-
   const ordered = useMemo(() => {
     if (mode === "trust") return [...scored].sort((a, b) => b.score - a.score);
     const synth: Record<string, number> = { d1: 0.8, d2: 1.1, d3: 1.4, d4: 1.9 };
