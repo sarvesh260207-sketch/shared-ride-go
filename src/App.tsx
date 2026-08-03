@@ -22,27 +22,30 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Header />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Index />} />
-            <Route path="/ride/:id" element={<RideDetail />} />
-            <Route path="/offer-ride" element={<OfferRide />} />
-            <Route path="/travel-planner" element={<TravelPlanner />} />
-            <Route path="/pink-corridor" element={<PinkCorridor />} />
-            <Route path="/transit" element={<Transit />} />
-            <Route path="/corporate" element={<Corporate />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+      <PasswordGate>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Header />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/ride/:id" element={<RideDetail />} />
+              <Route path="/offer-ride" element={<OfferRide />} />
+              <Route path="/travel-planner" element={<TravelPlanner />} />
+              <Route path="/pink-corridor" element={<PinkCorridor />} />
+              <Route path="/transit" element={<Transit />} />
+              <Route path="/corporate" element={<Corporate />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </PasswordGate>
     </TooltipProvider>
   </QueryClientProvider>
+
 );
 
 export default App;
