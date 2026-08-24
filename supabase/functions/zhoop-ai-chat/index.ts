@@ -87,41 +87,47 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Re-emit only the answer text deltas as a plain text stream.
-    const reader = aiRes.body.getReader();
-    const decoder = new TextDecoder();
+    // Consume the SSE stream and stream only the answer text back as plain text.
     const encoder = new TextEncoder();
-    let buffer = "";
-
     const stream = new ReadableStream({
-      async pull(controller) {
-        const { done, value } = await reader.read();
-        if (done) {
-          controller.close();
-          return;
-        }
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const data = line.slice(5).trim();
-          if (!data || data === "[DONE]") continue;
-          try {
-            const evt = JSON.parse(data);
-            if (evt.type === "response.completed" || evt.type === "response.failed" || evt.type === "error" || evt.type === "response.incomplete") {
-              console.log("evt", JSON.stringify(evt).slice(0, 1500));
+      async start(controller) {
+        const reader = aiRes.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let emitted = 0;
+        const seen = new Set<string>();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const raw of lines) {
+              const line = raw.trim();
+              if (!line.startsWith("data:")) continue;
+              const data = line.slice(5).trim();
+              if (!data || data === "[DONE]") continue;
+              try {
+                const evt = JSON.parse(data);
+                if (evt.type) seen.add(evt.type);
+                if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
+                  emitted += evt.delta.length;
+                  controller.enqueue(encoder.encode(evt.delta));
+                } else if (evt.type === "response.failed" || evt.type === "error") {
+                  console.error("gateway event", JSON.stringify(evt).slice(0, 1000));
+                }
+              } catch {
+                // ignore partial/non-JSON events
+              }
             }
-            if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
-              controller.enqueue(encoder.encode(evt.delta));
-            }
-          } catch {
-            // ignore partial/non-JSON events
           }
+        } catch (err) {
+          console.error("stream error", err);
+        } finally {
+          console.log("emitted chars:", emitted, "event types:", Array.from(seen).join(","));
+          controller.close();
         }
-      },
-      cancel() {
-        reader.cancel();
       },
     });
 
@@ -132,6 +138,7 @@ Deno.serve(async (req) => {
         "Cache-Control": "no-cache",
       },
     });
+
   } catch (e) {
     console.error("zhoop-ai-chat error", e);
     return new Response(JSON.stringify({ error: "Something went wrong." }), {
