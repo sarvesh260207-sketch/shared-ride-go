@@ -42,7 +42,6 @@ Deno.serve(async (req) => {
     }
 
     const { messages = [] } = await req.json();
-    console.log("request received, msgs:", messages.length);
 
     const input = [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
@@ -73,7 +72,6 @@ Deno.serve(async (req) => {
       }),
     });
 
-    console.log("gateway status", aiRes.status);
     if (!aiRes.ok || !aiRes.body) {
       const text = await aiRes.text();
       const status = aiRes.status === 429 || aiRes.status === 402 ? aiRes.status : 500;
@@ -125,7 +123,7 @@ Deno.serve(async (req) => {
         } catch (err) {
           console.error("stream error", err);
         } finally {
-          console.log("emitted chars:", emitted, "event types:", Array.from(seen).join(","));
+          if (emitted === 0) console.error("no text emitted; events:", Array.from(seen).join(","));
           controller.close();
         }
       },
