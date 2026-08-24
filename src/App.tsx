@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PasswordGate from "@/components/PasswordGate";
 import Header from "@/components/Header";
+import ZhoopAiChat from "@/components/ZhoopAiChat";
 import Index from "./pages/Index";
 import RideDetail from "./pages/RideDetail";
 import OfferRide from "./pages/OfferRide";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <ZhoopAiChat />
           </AuthProvider>
         </BrowserRouter>
       </PasswordGate>
