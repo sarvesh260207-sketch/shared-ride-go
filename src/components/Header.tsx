@@ -6,6 +6,7 @@ import zhoopLogo from "@/assets/zhoop-logo-new.jpeg";
 import PricingDialog from "@/components/PricingDialog";
 import WorkflowDownload from "@/components/WorkflowDownload";
 import IntroIcon from "@/components/IntroIcon";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 const Header = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <ThemeSwitcher />
           <IntroIcon />
           <div className="hidden md:block">
             <PricingDialog />
@@ -72,6 +74,7 @@ const Header = () => {
           )}
         </nav>
       </div>
+      <div className="yellow-green-stripe" aria-hidden="true" />
     </header>
   );
 };
