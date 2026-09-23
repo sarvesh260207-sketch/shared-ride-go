@@ -47,15 +47,15 @@ const Header = () => {
             </Button>
           </Link>
           <Link to="/travel-planner">
-            <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
+            <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3 font-display text-xs rounded-lg" aria-label="Plan Trip">
               <Route className="w-3.5 h-3.5" />
-              Plan Trip
+              <span className="hidden md:inline">Plan Trip</span>
             </Button>
           </Link>
           <Link to="/offer-ride">
-            <Button variant="outline" size="sm" className="gap-1.5 font-display text-xs rounded-lg">
+            <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3 font-display text-xs rounded-lg" aria-label="Offer Ride">
               <PlusCircle className="w-3.5 h-3.5" />
-              Offer Ride
+              <span className="hidden md:inline">Offer Ride</span>
             </Button>
           </Link>
           {user ? (
