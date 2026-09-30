@@ -68,12 +68,20 @@ interface PublishedFile {
   label: string;
   href: string;
   fileName: string;
+  kind?: "video";
 }
 
 const PUBLISHED_DECK: PublishedFile = {
   label: "Zhoop Pitch Deck",
   href: "/files/zhoop-pitch-deck.pdf",
   fileName: "Zhoop_Pitch_Deck.pdf",
+};
+
+const PUBLISHED_VIDEO: PublishedFile = {
+  label: "Problem Statement Video",
+  href: "/files/problem-statement.mp4",
+  fileName: "Zhoop_Problem_Statement.mp4",
+  kind: "video",
 };
 
 const PUBLISHED_SURVEY: PublishedFile = {
@@ -88,9 +96,18 @@ function PublishedFileCard({ file }: { file: PublishedFile }) {
     <div className="rounded-md border border-primary/30 bg-primary/5 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">Available for everyone</p>
       <p className="mt-1 truncate text-sm font-semibold">{file.label}</p>
+      {file.kind === "video" && (
+        <video
+          src={file.href}
+          controls
+          playsInline
+          preload="metadata"
+          className="mt-3 max-h-64 w-full rounded-md border border-border bg-black"
+        />
+      )}
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <Button asChild>
-          <a href={file.href} target="_blank" rel="noopener noreferrer"><ExternalLink /> View</a>
+          <a href={file.href} target="_blank" rel="noopener noreferrer"><ExternalLink /> {file.kind === "video" ? "Open full screen" : "View"}</a>
         </Button>
         <Button variant="outline" asChild>
           <a href={file.href} download={file.fileName}><Download /> Download</a>
@@ -566,6 +583,7 @@ export default function RevenueAndPresentation() {
             invalidMessage="Choose a video file (mp4, mov, webm, mkv, avi)."
             emptyHint="Upload an .mp4, .mov or .webm video."
             preview="video"
+            published={PUBLISHED_VIDEO}
           />
 
           <LocalFileDialog
