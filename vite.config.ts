@@ -32,8 +32,8 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "zhoop-pages", networkTimeoutSeconds: 5 },
           },
           {
-            urlPattern: ({ request, url }) =>
-              url.origin === self.location.origin && ["script", "style", "image", "font"].includes(request.destination),
+            urlPattern: ({ request, sameOrigin }) =>
+              sameOrigin && ["script", "style", "image", "font"].includes(request.destination),
             handler: "CacheFirst",
             options: { cacheName: "zhoop-assets", expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 } },
           },
