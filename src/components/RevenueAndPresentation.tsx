@@ -1,5 +1,17 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { Download, FileSliders, Image as ImageIcon, Loader2, LogIn, Presentation, Trash2, Upload } from "lucide-react";
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  Download,
+  ExternalLink,
+  FileSliders,
+  FileSpreadsheet,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Loader2,
+  Presentation,
+  Trash2,
+  Upload,
+  Video as VideoIcon,
+} from "lucide-react";
 import revenueModel from "@/assets/zhoop-revenue-model.jpeg.asset.json";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,19 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  getOfflinePresentation,
-  OfflinePresentation,
-  removeOfflinePresentation,
-  saveOfflinePresentation,
-} from "@/lib/offlinePresentation";
-import { useNavigate } from "react-router-dom";
+import { FileSlot, getLocalFile, LocalFile, removeLocalFile, saveLocalFile } from "@/lib/localFiles";
 import { toast } from "sonner";
 
 const BUCKET = "user-presentations";
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const PPT_MAX_SIZE = 20 * 1024 * 1024;
+const VIDEO_MAX_SIZE = 200 * 1024 * 1024;
+const SHEET_MAX_SIZE = 20 * 1024 * 1024;
+const SHEET_LINK_KEY = "zhoop-google-sheet-link";
 
 function downloadBlob(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
@@ -34,18 +44,283 @@ function downloadBlob(blob: Blob, name: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function isPowerPoint(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-  return extension === "ppt" || extension === "pptx";
+const extensionOf = (file: File) => file.name.split(".").pop()?.toLowerCase() ?? "";
+const isPowerPoint = (file: File) => ["ppt", "pptx"].includes(extensionOf(file));
+const isVideo = (file: File) =>
+  file.type.startsWith("video/") || ["mp4", "mov", "webm", "mkv", "avi", "m4v"].includes(extensionOf(file));
+const isSpreadsheet = (file: File) => ["xls", "xlsx", "csv", "ods"].includes(extensionOf(file));
+
+function formatSize(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function isGoogleSheetsLink(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "docs.google.com" && url.pathname.startsWith("/spreadsheets");
+  } catch {
+    return false;
+  }
+}
+
+interface PublishedFile {
+  label: string;
+  href: string;
+  fileName: string;
+}
+
+const PUBLISHED_DECK: PublishedFile = {
+  label: "Zhoop Pitch Deck",
+  href: "/files/zhoop-pitch-deck.pdf",
+  fileName: "Zhoop_Pitch_Deck.pdf",
+};
+
+const PUBLISHED_SURVEY: PublishedFile = {
+  label: "Chennai Ride Sharing Survey",
+  href: "/files/chennai-ride-sharing-survey.pdf",
+  fileName: "Chennai_Ride_Sharing_Survey.pdf",
+};
+
+// A file bundled with the site, so it is visible on every device with no sign-in.
+function PublishedFileCard({ file }: { file: PublishedFile }) {
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Available for everyone</p>
+      <p className="mt-1 truncate text-sm font-semibold">{file.label}</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <Button asChild>
+          <a href={file.href} target="_blank" rel="noopener noreferrer"><ExternalLink /> View</a>
+        </Button>
+        <Button variant="outline" asChild>
+          <a href={file.href} download={file.fileName}><Download /> Download</a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface LocalFileDialogProps {
+  slot: FileSlot;
+  title: string;
+  description: string;
+  triggerTitle: string;
+  triggerEmpty: string;
+  icon: ReactNode;
+  accept: string;
+  maxSize: number;
+  validate: (file: File) => boolean;
+  invalidMessage: string;
+  emptyHint: string;
+  preview?: "video";
+  published?: PublishedFile;
+  children?: ReactNode;
+}
+
+// Upload / download / remove for one file, stored on this device (no sign-in needed).
+function LocalFileDialog({
+  slot,
+  title,
+  description,
+  triggerTitle,
+  triggerEmpty,
+  icon,
+  accept,
+  maxSize,
+  validate,
+  invalidMessage,
+  emptyHint,
+  preview,
+  published,
+  children,
+}: LocalFileDialogProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<LocalFile | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getLocalFile(slot)
+      .then((saved) => { if (active) setFile(saved); })
+      .catch((error) => console.error(`Could not read saved ${slot}`, error));
+    return () => { active = false; };
+  }, [slot]);
+
+  useEffect(() => {
+    if (preview !== "video" || !file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file.blob);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file, preview]);
+
+  const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    event.target.value = "";
+    if (!selected) return;
+    if (!validate(selected)) {
+      toast.error(invalidMessage);
+      return;
+    }
+    if (selected.size > maxSize) {
+      toast.error(`The file must be ${formatSize(maxSize)} or smaller.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await saveLocalFile(slot, selected, selected.name);
+      setFile(await getLocalFile(slot));
+      toast.success("Saved on this device.");
+    } catch (error) {
+      console.error(`Saving ${slot} failed`, error);
+      toast.error("The file could not be saved. Your browser storage may be full or blocked.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    setBusy(true);
+    try {
+      await removeLocalFile(slot);
+      setFile(null);
+      toast.success("File removed.");
+    } catch (error) {
+      console.error(`Removing ${slot} failed`, error);
+      toast.error("The file could not be removed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="h-16 justify-start gap-3 px-5 text-base font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">{icon}</span>
+          <span className="min-w-0 text-left">
+            <span className="block">{triggerTitle}</span>
+            <span className="block truncate text-xs font-normal text-muted-foreground">{file?.name ?? triggerEmpty}</span>
+          </span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          {published && <PublishedFileCard file={published} />}
+          <input ref={inputRef} type="file" accept={accept} className="sr-only" onChange={handleUpload} />
+          {previewUrl && <video src={previewUrl} controls className="max-h-64 w-full rounded-md border border-border bg-black" />}
+          <div className="flex items-start gap-3 rounded-md border border-border p-4">
+            <span className="mt-0.5 flex-shrink-0 text-primary">{icon}</span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{file?.name ?? "Nothing uploaded yet"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {file ? `${formatSize(file.size)} · saved on this device` : emptyHint}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button onClick={() => inputRef.current?.click()} disabled={busy}>
+              {busy ? <Loader2 className="animate-spin" /> : <Upload />}
+              {file ? "Replace" : "Upload"}
+            </Button>
+            <Button variant="outline" onClick={() => file && downloadBlob(file.blob, file.name)} disabled={busy || !file}>
+              <Download /> Download
+            </Button>
+          </div>
+          {children}
+        </div>
+        {file && (
+          <DialogFooter>
+            <Button variant="destructive" onClick={handleRemove} disabled={busy}>
+              <Trash2 /> Remove
+            </Button>
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GoogleSheetLink() {
+  const [link, setLink] = useState("");
+  const [savedLink, setSavedLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setSavedLink(localStorage.getItem(SHEET_LINK_KEY));
+    } catch {
+      setSavedLink(null);
+    }
+  }, []);
+
+  const save = () => {
+    const value = link.trim();
+    if (!isGoogleSheetsLink(value)) {
+      toast.error("Paste a Google Sheets link (https://docs.google.com/spreadsheets/...).");
+      return;
+    }
+    try {
+      localStorage.setItem(SHEET_LINK_KEY, value);
+    } catch {
+      toast.error("Your browser blocked saving the link.");
+      return;
+    }
+    setSavedLink(value);
+    setLink("");
+    toast.success("Google Sheets link saved on this device.");
+  };
+
+  const clear = () => {
+    try {
+      localStorage.removeItem(SHEET_LINK_KEY);
+    } catch {
+      /* ignore */
+    }
+    setSavedLink(null);
+  };
+
+  return (
+    <div className="space-y-2 border-t border-border pt-4">
+      <p className="text-sm font-semibold">Or link a Google Sheet</p>
+      {savedLink && (
+        <div className="flex items-center gap-2 rounded-md border border-border p-3">
+          <LinkIcon className="h-4 w-4 flex-shrink-0 text-primary" />
+          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{savedLink}</span>
+          <Button size="sm" variant="outline" asChild>
+            <a href={savedLink} target="_blank" rel="noopener noreferrer"><ExternalLink /> Open</a>
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clear} aria-label="Remove Google Sheets link">
+            <Trash2 />
+          </Button>
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          value={link}
+          onChange={(event) => setLink(event.target.value)}
+          placeholder="https://docs.google.com/spreadsheets/d/..."
+          aria-label="Google Sheets link"
+        />
+        <Button variant="secondary" onClick={save}>Save</Button>
+      </div>
+      <p className="text-xs text-muted-foreground">Make sure the sheet's sharing is set so the people who need it can open it.</p>
+    </div>
+  );
 }
 
 export default function RevenueAndPresentation() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [storedPath, setStoredPath] = useState<string | null>(null);
   const [storedName, setStoredName] = useState<string | null>(null);
-  const [offlineFile, setOfflineFile] = useState<OfflinePresentation | null>(null);
+  const [offlineFile, setOfflineFile] = useState<LocalFile | null>(null);
   const [busy, setBusy] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -62,10 +337,11 @@ export default function RevenueAndPresentation() {
 
   useEffect(() => {
     let active = true;
-    getOfflinePresentation().then((file) => {
-      if (active) setOfflineFile(file);
-    });
+    getLocalFile("presentation")
+      .then((file) => { if (active) setOfflineFile(file); })
+      .catch((error) => console.error("Could not read saved presentation", error));
 
+    // Cloud sync is optional and only for signed-in users.
     if (!user || !navigator.onLine) {
       setStoredPath(null);
       setStoredName(null);
@@ -75,7 +351,7 @@ export default function RevenueAndPresentation() {
     supabase.storage.from(BUCKET).list(user.id, { limit: 1 }).then(({ data, error }) => {
       if (!active) return;
       if (error) {
-        toast.error("Could not check your saved presentation.");
+        console.error("Could not check cloud presentation", error);
         return;
       }
       const file = data?.[0];
@@ -88,41 +364,48 @@ export default function RevenueAndPresentation() {
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || !user) return;
+    if (!file) return;
     if (!isPowerPoint(file)) {
       toast.error("Choose a .ppt or .pptx PowerPoint file.");
       return;
     }
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > PPT_MAX_SIZE) {
       toast.error("The presentation must be 20 MB or smaller.");
-      return;
-    }
-    if (!navigator.onLine) {
-      toast.error("Reconnect to upload a new presentation.");
       return;
     }
 
     setBusy(true);
-    const extension = file.name.split(".").pop()?.toLowerCase() ?? "pptx";
-    const path = `${user.id}/presentation.${extension}`;
     try {
-      if (storedPath && storedPath !== path) {
-        const { error: removeError } = await supabase.storage.from(BUCKET).remove([storedPath]);
-        if (removeError) throw removeError;
+      // 1) Always save on this device: works with no sign-in and offline.
+      await saveLocalFile("presentation", file, file.name);
+      setOfflineFile(await getLocalFile("presentation"));
+
+      // 2) If signed in and online, also back it up to the user's private cloud folder.
+      if (user && navigator.onLine) {
+        try {
+          const path = `${user.id}/presentation.${extensionOf(file) || "pptx"}`;
+          if (storedPath && storedPath !== path) {
+            const { error: removeError } = await supabase.storage.from(BUCKET).remove([storedPath]);
+            if (removeError) throw removeError;
+          }
+          const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+            upsert: true,
+            contentType: file.type || "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          });
+          if (error) throw error;
+          setStoredPath(path);
+          setStoredName(file.name);
+          toast.success("PowerPoint saved on this device and synced to your account.");
+        } catch (cloudError) {
+          console.error("Cloud sync failed", cloudError);
+          toast.success("PowerPoint saved on this device. Cloud sync failed.");
+        }
+      } else {
+        toast.success("PowerPoint saved on this device.");
       }
-      const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-        upsert: true,
-        contentType: file.type || "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      });
-      if (error) throw error;
-      await saveOfflinePresentation(file, file.name);
-      setStoredPath(path);
-      setStoredName(file.name);
-      setOfflineFile(await getOfflinePresentation());
-      toast.success("PowerPoint saved and available offline on this device.");
     } catch (error) {
       console.error("Presentation upload failed", error);
-      toast.error("The PowerPoint could not be saved.");
+      toast.error("The PowerPoint could not be saved. Your browser storage may be full or blocked.");
     } finally {
       setBusy(false);
     }
@@ -134,7 +417,7 @@ export default function RevenueAndPresentation() {
       return;
     }
     if (!storedPath || !user || !navigator.onLine) {
-      toast.error("This presentation is not available offline on this device yet.");
+      toast.error("This presentation is not available on this device yet.");
       return;
     }
     setBusy(true);
@@ -142,8 +425,8 @@ export default function RevenueAndPresentation() {
       const { data, error } = await supabase.storage.from(BUCKET).download(storedPath);
       if (error) throw error;
       const name = storedName ?? "Zhoop_Presentation.pptx";
-      await saveOfflinePresentation(data, name);
-      setOfflineFile(await getOfflinePresentation());
+      await saveLocalFile("presentation", data, name);
+      setOfflineFile(await getLocalFile("presentation"));
       downloadBlob(data, name);
     } catch (error) {
       console.error("Presentation download failed", error);
@@ -154,14 +437,15 @@ export default function RevenueAndPresentation() {
   };
 
   const handleRemove = async () => {
-    if (!user || !storedPath || !navigator.onLine) return;
     setBusy(true);
     try {
-      const { error } = await supabase.storage.from(BUCKET).remove([storedPath]);
-      if (error) throw error;
-      await removeOfflinePresentation();
-      setStoredPath(null);
-      setStoredName(null);
+      if (user && storedPath && navigator.onLine) {
+        const { error } = await supabase.storage.from(BUCKET).remove([storedPath]);
+        if (error) throw error;
+        setStoredPath(null);
+        setStoredName(null);
+      }
+      await removeLocalFile("presentation");
       setOfflineFile(null);
       toast.success("PowerPoint removed.");
     } catch (error) {
@@ -217,60 +501,89 @@ export default function RevenueAndPresentation() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Your PowerPoint</DialogTitle>
-                <DialogDescription>Keep one private presentation, up to 20 MB.</DialogDescription>
+                <DialogDescription>
+                  Keep one presentation, up to 20 MB. No sign-in needed.
+                </DialogDescription>
               </DialogHeader>
 
-              {!user ? (
-                <div className="rounded-md border border-border bg-muted/50 p-5 text-center">
-                  <LogIn className="mx-auto mb-3 h-7 w-7 text-primary" />
-                  <p className="mb-4 text-sm text-muted-foreground">Sign in to keep your presentation private and synced.</p>
-                  <Button onClick={() => navigate("/auth")}><LogIn /> Sign in</Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                    className="sr-only"
-                    onChange={handleUpload}
-                  />
-                  <div className="flex items-start gap-3 rounded-md border border-border p-4">
-                    <FileSliders className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{offlineFile?.name ?? storedName ?? "No presentation uploaded"}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {!isOnline
-                          ? "Offline — your device copy remains available."
-                          : offlineFile
-                            ? "Saved online and available offline on this device."
-                            : storedPath
-                              ? "Saved online. Download once to keep it offline."
-                              : "Upload a .ppt or .pptx file."}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Button onClick={() => inputRef.current?.click()} disabled={busy || !isOnline}>
-                      {busy ? <Loader2 className="animate-spin" /> : <Upload />}
-                      {hasPresentation ? "Replace" : "Upload"}
-                    </Button>
-                    <Button variant="outline" onClick={handleDownload} disabled={busy || !hasPresentation}>
-                      <Download /> Download
-                    </Button>
+              <div className="space-y-4">
+                <PublishedFileCard file={PUBLISHED_DECK} />
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                  className="sr-only"
+                  onChange={handleUpload}
+                />
+                <div className="flex items-start gap-3 rounded-md border border-border p-4">
+                  <FileSliders className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{offlineFile?.name ?? storedName ?? "No presentation uploaded"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {offlineFile
+                        ? storedPath
+                          ? "Saved on this device and synced to your account."
+                          : "Saved on this device. Sign in if you want it synced to your account."
+                        : storedPath
+                          ? isOnline
+                            ? "Saved in your account. Download once to keep it on this device."
+                            : "Saved in your account. Reconnect to download it."
+                          : "Upload a .ppt or .pptx file."}
+                    </p>
                   </div>
                 </div>
-              )}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button onClick={() => inputRef.current?.click()} disabled={busy}>
+                    {busy ? <Loader2 className="animate-spin" /> : <Upload />}
+                    {hasPresentation ? "Replace" : "Upload"}
+                  </Button>
+                  <Button variant="outline" onClick={handleDownload} disabled={busy || !hasPresentation}>
+                    <Download /> Download
+                  </Button>
+                </div>
+              </div>
 
-              {user && hasPresentation && (
+              {hasPresentation && (
                 <DialogFooter>
-                  <Button variant="destructive" onClick={handleRemove} disabled={busy || !isOnline}>
+                  <Button variant="destructive" onClick={handleRemove} disabled={busy}>
                     <Trash2 /> Remove
                   </Button>
                 </DialogFooter>
               )}
             </DialogContent>
           </Dialog>
+
+          <LocalFileDialog
+            slot="video"
+            title="Your Video"
+            description="Keep one video, up to 200 MB. No sign-in needed."
+            triggerTitle="Video Drive"
+            triggerEmpty="Upload and keep one video"
+            icon={<VideoIcon className="h-5 w-5" />}
+            accept="video/*,.mp4,.mov,.webm,.mkv,.avi,.m4v"
+            maxSize={VIDEO_MAX_SIZE}
+            validate={isVideo}
+            invalidMessage="Choose a video file (mp4, mov, webm, mkv, avi)."
+            emptyHint="Upload an .mp4, .mov or .webm video."
+            preview="video"
+          />
+
+          <LocalFileDialog
+            slot="spreadsheet"
+            title="Your Spreadsheet"
+            description="Keep one Excel or Google Sheets file, up to 20 MB. No sign-in needed."
+            triggerTitle="Excel / Google Sheet"
+            triggerEmpty="Upload a file or add a link"
+            icon={<FileSpreadsheet className="h-5 w-5" />}
+            accept=".xls,.xlsx,.csv,.ods,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            maxSize={SHEET_MAX_SIZE}
+            published={PUBLISHED_SURVEY}
+            validate={isSpreadsheet}
+            invalidMessage="Choose an Excel file (.xls, .xlsx), .csv or .ods."
+            emptyHint="Upload .xlsx, .xls or .csv. In Google Sheets use File > Download > Excel (.xlsx)."
+          >
+            <GoogleSheetLink />
+          </LocalFileDialog>
         </div>
       </div>
     </section>
