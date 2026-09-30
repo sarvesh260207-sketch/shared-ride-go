@@ -14,6 +14,7 @@ import VirtualBusStops from "@/components/VirtualBusStops";
 import WorkflowDownload from "@/components/WorkflowDownload";
 import InsuranceSticker from "@/components/InsuranceSticker";
 import DemoTrustRide from "@/components/DemoTrustRide";
+import RevenueAndPresentation from "@/components/RevenueAndPresentation";
 import { PLATFORM_FEE, INSURANCE_FEE, FUEL_PRICE } from "@/lib/pricing";
 import { useActiveRides, DbRide } from "@/hooks/useRides";
 import { format } from "date-fns";
@@ -219,6 +220,8 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <RevenueAndPresentation />
 
       {/* Floating workflow PDF download — always reachable */}
       <WorkflowDownload floating />
