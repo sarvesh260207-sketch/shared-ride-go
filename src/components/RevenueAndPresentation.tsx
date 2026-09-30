@@ -64,6 +64,42 @@ function isGoogleSheetsLink(value: string) {
   }
 }
 
+interface PublishedFile {
+  label: string;
+  href: string;
+  fileName: string;
+}
+
+const PUBLISHED_DECK: PublishedFile = {
+  label: "Zhoop Pitch Deck",
+  href: "/files/zhoop-pitch-deck.pdf",
+  fileName: "Zhoop_Pitch_Deck.pdf",
+};
+
+const PUBLISHED_SURVEY: PublishedFile = {
+  label: "Chennai Ride Sharing Survey",
+  href: "/files/chennai-ride-sharing-survey.pdf",
+  fileName: "Chennai_Ride_Sharing_Survey.pdf",
+};
+
+// A file bundled with the site, so it is visible on every device with no sign-in.
+function PublishedFileCard({ file }: { file: PublishedFile }) {
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Available for everyone</p>
+      <p className="mt-1 truncate text-sm font-semibold">{file.label}</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <Button asChild>
+          <a href={file.href} target="_blank" rel="noopener noreferrer"><ExternalLink /> View</a>
+        </Button>
+        <Button variant="outline" asChild>
+          <a href={file.href} download={file.fileName}><Download /> Download</a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 interface LocalFileDialogProps {
   slot: FileSlot;
   title: string;
@@ -77,6 +113,7 @@ interface LocalFileDialogProps {
   invalidMessage: string;
   emptyHint: string;
   preview?: "video";
+  published?: PublishedFile;
   children?: ReactNode;
 }
 
@@ -94,6 +131,7 @@ function LocalFileDialog({
   invalidMessage,
   emptyHint,
   preview,
+  published,
   children,
 }: LocalFileDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -175,6 +213,7 @@ function LocalFileDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          {published && <PublishedFileCard file={published} />}
           <input ref={inputRef} type="file" accept={accept} className="sr-only" onChange={handleUpload} />
           {previewUrl && <video src={previewUrl} controls className="max-h-64 w-full rounded-md border border-border bg-black" />}
           <div className="flex items-start gap-3 rounded-md border border-border p-4">
@@ -468,6 +507,7 @@ export default function RevenueAndPresentation() {
               </DialogHeader>
 
               <div className="space-y-4">
+                <PublishedFileCard file={PUBLISHED_DECK} />
                 <input
                   ref={inputRef}
                   type="file"
@@ -537,6 +577,7 @@ export default function RevenueAndPresentation() {
             icon={<FileSpreadsheet className="h-5 w-5" />}
             accept=".xls,.xlsx,.csv,.ods,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
             maxSize={SHEET_MAX_SIZE}
+            published={PUBLISHED_SURVEY}
             validate={isSpreadsheet}
             invalidMessage="Choose an Excel file (.xls, .xlsx), .csv or .ods."
             emptyHint="Upload .xlsx, .xls or .csv. In Google Sheets use File > Download > Excel (.xlsx)."

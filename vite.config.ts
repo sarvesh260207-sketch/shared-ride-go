@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
       devOptions: { enabled: false },
       workbox: {
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth(?:\/|$)/],
+        navigateFallbackDenylist: [/^\/~oauth(?:\/|$)/, /^\/files\//],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
