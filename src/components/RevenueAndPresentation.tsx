@@ -12,7 +12,7 @@ import {
   Upload,
   Video as VideoIcon,
 } from "lucide-react";
-import revenueModel from "@/assets/zhoop-revenue-model.jpeg.asset.json";
+import revenueModelImage from "@/assets/zhoop-revenue-model.jpg";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -494,7 +494,7 @@ export default function RevenueAndPresentation() {
                 <DialogDescription>Daily revenue model at 1% Chennai market capture.</DialogDescription>
               </DialogHeader>
               <img
-                src={revenueModel.url}
+                src={revenueModelImage}
                 alt="Zhoop Chennai daily revenue model showing carbon credits and platform fee revenue"
                 className="h-auto w-full rounded-md border border-border"
               />
