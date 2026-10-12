@@ -20,7 +20,7 @@ const PricingDialog = () => (
           Transparent Pricing
         </DialogTitle>
         <DialogDescription>
-          Cost share = real fuel burn (distance ÷ ARAI mileage × fuel price) + ₹{PLATFORM_FEE} platform fee. Optional ₹{INSURANCE_FEE} insurance.
+          Cost share = real fuel burn (distance ÷ ARAI mileage × fuel price) (no platform fee). Optional ₹{INSURANCE_FEE} insurance.
         </DialogDescription>
       </DialogHeader>
 
@@ -36,7 +36,7 @@ const PricingDialog = () => (
           </div>
           <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center gap-1 text-primary"><Receipt className="w-3 h-3" /> Platform fee</div>
-            <div className="font-semibold text-primary">₹{PLATFORM_FEE} / ride</div>
+            <div className="font-semibold text-primary">Free</div>
           </div>
         </div>
 

@@ -15,6 +15,8 @@ import PinkCorridor from "./pages/PinkCorridor";
 import Transit from "./pages/Transit";
 import Corporate from "./pages/Corporate";
 import Auth from "./pages/Auth";
+import DriverPanel from "./pages/DriverPanel";
+import MatchRides from "./pages/MatchRides";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/pink-corridor" element={<PinkCorridor />} />
             <Route path="/transit" element={<Transit />} />
             <Route path="/corporate" element={<Corporate />} />
+            <Route path="/driver" element={<DriverPanel />} />
+            <Route path="/match" element={<MatchRides />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

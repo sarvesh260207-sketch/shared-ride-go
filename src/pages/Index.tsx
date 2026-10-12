@@ -92,7 +92,7 @@ const Index = () => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
               <Receipt className="w-3 h-3 text-primary" />
               <span className="font-medium text-foreground">Platform fee</span>
-              <span className="text-muted-foreground">flat ₹{PLATFORM_FEE}/ride</span>
+              <span className="text-muted-foreground">no platform fee</span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-xs">
               <ShieldCheck className="w-3 h-3 text-accent-foreground" />
