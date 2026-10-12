@@ -6,7 +6,7 @@
 //   fuelCost = (distanceKm / mileageKmpl) * fuelRate
 //   total    = fuelCost + PLATFORM_FEE  (+ INSURANCE_FEE if opted)
 
-export const PLATFORM_FEE = 5;          // ₹5 flat per ride
+export const PLATFORM_FEE = 0;          // No platform fee for now
 export const INSURANCE_FEE = 5;         // ₹5 per ride (covers month-long policy)
 export const FUEL_PRICE = { petrol: 102, diesel: 94 } as const;
 

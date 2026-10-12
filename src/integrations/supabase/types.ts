@@ -242,6 +242,44 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_locations: {
+        Row: {
+          driver_id: string
+          heading: number | null
+          lat: number
+          lng: number
+          ride_id: string
+          speed: number | null
+          updated_at: string
+        }
+        Insert: {
+          driver_id: string
+          heading?: number | null
+          lat: number
+          lng: number
+          ride_id: string
+          speed?: number | null
+          updated_at?: string
+        }
+        Update: {
+          driver_id?: string
+          heading?: number | null
+          lat?: number
+          lng?: number
+          ride_id?: string
+          speed?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_locations_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: true
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_requests: {
         Row: {
           created_at: string
