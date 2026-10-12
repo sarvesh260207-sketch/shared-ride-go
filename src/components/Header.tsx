@@ -46,6 +46,8 @@ const Header = () => {
               Pink
             </Button>
           </Link>
+          <Link to="/match"><Button variant="ghost" size="sm" className="text-xs">Match</Button></Link>
+          <Link to="/driver"><Button variant="ghost" size="sm" className="text-xs">Driver</Button></Link>
           <Link to="/travel-planner">
             <Button variant="outline" size="sm" className="gap-1.5 px-2 sm:px-3 font-display text-xs rounded-lg" aria-label="Plan Trip">
               <Route className="w-3.5 h-3.5" />

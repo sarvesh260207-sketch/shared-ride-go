@@ -9,12 +9,15 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState } from "react";
 import IdlePrompt from "@/components/IdlePrompt";
+import LiveMap from "@/components/LiveMap";
+import { useRideLocation } from "@/hooks/useLiveLocation";
 
 const RideDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { data: ride, isLoading, error } = useRideById(id);
   const [requesting, setRequesting] = useState(false);
+  const liveLoc = useRideLocation(id);
 
   const handleRequestJoin = async () => {
     if (!user || !id) return;
