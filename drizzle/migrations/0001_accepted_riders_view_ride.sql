@@ -1,0 +1,2 @@
+CREATE POLICY "Accepted riders can view their ride" ON public.rides FOR SELECT TO authenticated
+  USING (EXISTS (SELECT 1 FROM public.ride_requests rr WHERE rr.ride_id = rides.id AND rr.requester_id = auth.uid() AND rr.status = 'accepted'));

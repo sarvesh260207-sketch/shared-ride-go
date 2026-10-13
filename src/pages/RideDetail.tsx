@@ -128,6 +128,20 @@ const RideDetail = () => {
             </div>
           </motion.div>
 
+          {/* Live map */}
+          <div className="saathi-card p-3 space-y-2">
+            <LiveMap
+              from={ride.origin_lat != null && ride.origin_lng != null ? { lat: ride.origin_lat, lng: ride.origin_lng } : null}
+              to={ride.destination_lat != null && ride.destination_lng != null ? { lat: ride.destination_lat, lng: ride.destination_lng } : null}
+              live={liveLoc}
+            />
+            <p className="text-xs text-muted-foreground">
+              {liveLoc
+                ? `Driver live location · updated ${format(new Date(liveLoc.updated_at), "hh:mm:ss a")}`
+                : "Driver's live location appears here once your request is accepted and the trip starts."}
+            </p>
+          </div>
+
           {/* Pricing */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="saathi-card p-5">
             <h3 className="font-display font-semibold text-foreground mb-3">Ride Info</h3>
