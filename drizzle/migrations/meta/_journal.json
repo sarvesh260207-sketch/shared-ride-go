@@ -8,6 +8,13 @@
       "when": 1791829776977,
       "tag": "0000_ride_locations",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791893548795,
+      "tag": "0001_accepted_riders_view_ride",
+      "breakpoints": true
     }
   ]
 }
